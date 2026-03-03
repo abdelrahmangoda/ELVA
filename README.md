@@ -39,28 +39,6 @@ Future Expansion:
 
 ---
 
-## 📂 Project Structure
-
-elva/
-│
-├── web/
-│ ├── frontend/ # React web app
-│ └── backend/ # FastAPI backend
-│
-├── ai/
-│ ├── lesson/ # Lesson generation engine
-│ ├── questions/ # Question generator
-│ └── adaptive/ # Difficulty adjustment logic
-│
-├── avatar/ # Future phase
-│ ├── face/
-│ └── voice/
-│
-├── README.md
-└── requirements.txt
-
-
----
 
 ## 🧠 Core Features
 
