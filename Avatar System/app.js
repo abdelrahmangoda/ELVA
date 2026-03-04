@@ -1,547 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Avatar Creator Pro — EdTech</title>
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#05090F;--surface:#0B1524;--card:#101E30;
-      --cyan:#00D4FF;--purple:#7B2FBE;--green:#00E5A0;
-      --text:#D6EFFF;--muted:#4A6880;--danger:#FF4D6D;
-      --orange:#FF9500;--gold:#F6A623;
-    }
-    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
-
-    /* ── Animated grid background ── */
-    body::before{
-      content:'';position:fixed;inset:0;
-      background-image:
-        linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);
-      background-size:40px 40px;pointer-events:none;z-index:0;
-    }
-
-    /* Floating particles */
-    .particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-    .particle{position:absolute;width:4px;height:4px;background:var(--cyan);border-radius:50%;opacity:0.3;animation:float 15s infinite}
-    @keyframes float{
-      0%,100%{transform:translateY(100vh) rotate(0deg);opacity:0}
-      10%{opacity:0.3}
-      90%{opacity:0.3}
-      100%{transform:translateY(-100vh) rotate(720deg);opacity:0}
-    }
-
-    .app{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:24px 16px 60px}
-
-    /* ── Header ── */
-    header{text-align:center;margin-bottom:32px}
-    .badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:4px 14px;border-radius:20px;margin-bottom:14px}
-    h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,42px);font-weight:900;background:linear-gradient(135deg,#fff 30%,var(--cyan) 60%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
-    .subtitle{color:var(--muted);font-size:14px;max-width:500px;margin:0 auto}
-
-    /* ── Toolbar ── */
-    .toolbar{display:flex;justify-content:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-    .toolbar-btn{padding:8px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
-    .toolbar-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--cyan);color:var(--cyan)}
-    .toolbar-btn:disabled{opacity:0.4;cursor:not-allowed}
-    .toolbar-sep{width:1px;height:24px;background:rgba(255,255,255,0.1);margin:0 4px}
-
-    /* ── Tabs ── */
-    .tabs{display:flex;background:var(--surface);border-radius:16px;border:1px solid rgba(0,212,255,0.08);overflow:hidden;margin-bottom:24px}
-    .tab{flex:1;padding:14px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--muted);transition:all .2s;border-bottom:2px solid transparent;position:relative}
-    .tab.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,212,255,0.06)}
-    .tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.02)}
-    .tab-badge{position:absolute;top:6px;right:10px;background:var(--green);color:#000;font-size:8px;padding:2px 6px;border-radius:10px;font-weight:800}
-
-    /* ── Main card ── */
-    .card{background:var(--card);border:1px solid rgba(0,212,255,0.08);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-    .panel{display:none;padding:24px;gap:24px}
-    .panel.active{display:grid}
-    .panel-2col{grid-template-columns:1fr 240px}
-    .panel-1col{grid-template-columns:1fr}
-
-    /* ── Section ── */
-    .section{margin-bottom:20px}
-    .section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-    .section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05)}
-
-    /* ── Gender toggle ── */
-    .gender-toggle{display:flex;gap:8px;margin-bottom:18px}
-    .gender-btn{flex:1;padding:12px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.08);border-radius:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s}
-    .gender-btn.active{background:rgba(0,212,255,0.1);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 20px rgba(0,212,255,0.15)}
-    .gender-btn:hover:not(.active){background:rgba(255,255,255,0.05)}
-
-    /* ── Preset grid ── */
-    .preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .preset-card{background:rgba(255,255,255,0.02);border:2px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s;position:relative;overflow:hidden}
-    .preset-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(0,212,255,0.05));opacity:0;transition:opacity .3s}
-    .preset-card:hover{border-color:rgba(0,212,255,0.3);transform:translateY(-2px)}
-    .preset-card:hover::before{opacity:1}
-    .preset-card.selected{border-color:var(--cyan);background:rgba(0,212,255,0.08);box-shadow:0 0 30px rgba(0,212,255,0.2)}
-    .selected-badge{font-size:10px;color:var(--cyan);font-weight:700;font-family:'DM Mono',monospace}
-    .preset-name{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
-
-    /* ── Preview pane ── */
-    .preview-pane{display:flex;flex-direction:column;align-items:center;gap:14px;position:sticky;top:20px}
-    .preview-box{background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(123,47,190,0.04));border:1px solid rgba(0,212,255,0.12);border-radius:20px;padding:20px;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s}
-    .preview-box:hover{transform:scale(1.02);box-shadow:0 10px 40px rgba(0,212,255,0.15)}
-    .preview-box.animating svg{animation:bounce .5s ease}
-    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-    .preview-label{position:absolute;bottom:8px;right:10px;font-family:'DM Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:1px}
-    
-    .preview-actions{display:flex;gap:8px;width:100%}
-    .save-btn{flex:1;padding:12px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border:none;border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,212,255,0.25)}
-    .save-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,0.35)}
-    .save-btn.saved{background:linear-gradient(135deg,#00E5A0,#00b377)}
-
-    .export-dropdown{position:relative}
-    .export-btn{padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:var(--text);cursor:pointer;font-size:16px;transition:all .2s}
-    .export-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--cyan)}
-    .export-menu{position:absolute;top:100%;right:0;margin-top:8px;background:var(--card);border:1px solid rgba(0,212,255,0.2);border-radius:12px;overflow:hidden;display:none;min-width:160px;z-index:100;box-shadow:0 10px 40px rgba(0,0,0,0.5)}
-    .export-menu.show{display:block;animation:fadeIn .2s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-    .export-item{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .2s;font-size:13px}
-    .export-item:hover{background:rgba(0,212,255,0.1)}
-    .export-item span{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
-
-    .share-row{display:flex;gap:8px;width:100%}
-    .share-btn{flex:1;padding:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
-    .share-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--cyan);color:var(--cyan)}
-
-    /* ── Scan tab ── */
-    .scan-wrap{position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3}
-    video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
-    canvas#scan-canvas{display:none}
-    canvas#overlay-canvas{position:absolute;inset:0;pointer-events:none;z-index:15;transform:scaleX(-1)}
-
-    /* corner brackets */
-    .corner{position:absolute;width:24px;height:24px;z-index:10;transition:all .3s}
-    .corner.tl{top:12px;left:12px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-    .corner.tr{top:12px;right:12px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-    .corner.bl{bottom:12px;left:12px;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-    .corner.br{bottom:12px;right:12px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-    .scanning .corner{border-color:var(--green);animation:pulse 1s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-
-    /* face oval guide */
-    .face-oval{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:130px;height:170px;border:2px dashed rgba(0,212,255,0.35);border-radius:50%;pointer-events:none;z-index:8;transition:all .3s}
-    .face-detected .face-oval{border-color:var(--green);border-style:solid}
-
-    /* scan line */
-    .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);z-index:9;animation:scanline 2s ease-in-out infinite;display:none}
-    @keyframes scanline{0%{top:15%}100%{top:85%}}
-    .scanning .scan-line{display:block}
-
-    /* overlay message */
-    .scan-msg{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(5,9,15,0.9);border:1px solid rgba(0,212,255,0.2);border-radius:20px;padding:8px 20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--cyan);white-space:nowrap;z-index:10;text-align:center;backdrop-filter:blur(10px)}
-    .scan-msg.success{border-color:var(--green);color:var(--green)}
-    .scan-msg.error{border-color:var(--danger);color:var(--danger)}
-
-    /* Quality indicator */
-    .quality-indicator{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:10}
-    .quality-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all .3s}
-    .quality-dot.active{background:var(--green);box-shadow:0 0 10px var(--green)}
-    .quality-dot.warning{background:var(--orange)}
-
-    /* progress */
-    .progress-bar-wrap{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:10px;overflow:hidden}
-    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:3px;transition:width .1s}
-
-    /* detected data readout */
-    .data-readout{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);border-radius:12px;padding:14px;display:none}
-    .data-readout.visible{display:block;animation:fadeIn .3s ease}
-    .data-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
-    .data-row:last-child{border-bottom:none}
-    .data-key{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px}
-    .data-val{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--cyan)}
-    .color-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.2)}
-
-    /* scan buttons */
-    .scan-actions{display:flex;gap:8px;margin-top:12px}
-    .scan-btn{flex:1;padding:13px;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-    .scan-btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;box-shadow:0 4px 20px rgba(0,212,255,0.25)}
-    .scan-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,0.35)}
-    .scan-btn-secondary{background:rgba(255,255,255,0.04);border:1.5px solid rgba(0,212,255,0.25);color:var(--cyan)}
-    .scan-btn-secondary:hover{background:rgba(0,212,255,0.08)}
-    .scan-btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important}
-
-    .privacy-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
-    .chip{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
-    .chip-icon{font-size:12px}
-
-    /* ── Edit tab ── */
-    .edit-scroll{display:flex;flex-direction:column;gap:20px;overflow-y:auto;max-height:600px;padding-right:8px}
-    .edit-scroll::-webkit-scrollbar{width:4px}
-    .edit-scroll::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.2);border-radius:2px}
-    .edit-scroll::-webkit-scrollbar-thumb:hover{background:rgba(0,212,255,0.4)}
-
-    .swatches{display:flex;flex-wrap:wrap;gap:8px}
-    .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,0.1);transition:all .15s;flex-shrink:0;position:relative}
-    .swatch:hover{transform:scale(1.15);z-index:2}
-    .swatch.selected{border:3px solid #fff;box-shadow:0 0 0 3px var(--cyan),0 0 20px var(--cyan)}
-    .swatch-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .2s}
-    .swatch:hover .swatch-label{opacity:1}
-
-    .pills{display:flex;flex-wrap:wrap;gap:6px}
-    .pill{padding:6px 14px;border-radius:20px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);color:var(--muted);cursor:pointer;transition:all .15s}
-    .pill:hover{border-color:rgba(0,212,255,0.3);color:var(--text);transform:translateY(-1px)}
-    .pill.selected{background:rgba(0,212,255,0.12);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 15px rgba(0,212,255,0.2)}
-
-    .slider-row{display:flex;align-items:center;gap:12px}
-    .slider{flex:1;-webkit-appearance:none;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;outline:none}
-    .slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--cyan);border-radius:50%;cursor:pointer;box-shadow:0 0 10px var(--cyan)}
-    .slider-value{font-family:'DM Mono',monospace;font-size:12px;color:var(--cyan);min-width:30px;text-align:right}
-
-    .reset-btn{padding:10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all .15s;width:100%}
-    .reset-btn:hover{border-color:var(--danger);color:var(--danger);background:rgba(255,77,109,0.1)}
-
-    /* mini presets in edit sidebar */
-    .mini-presets{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.08);border-radius:14px;padding:14px;margin-top:12px}
-    .mini-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-    .mini-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-    .mini-card{background:none;border:2px solid rgba(255,255,255,0.07);border-radius:12px;padding:6px;cursor:pointer;transition:all .15s}
-    .mini-card:hover{border-color:var(--cyan);transform:scale(1.05)}
-    .mini-card.selected{border-color:var(--cyan);background:rgba(0,212,255,0.1)}
-
-    /* Randomize button */
-    .randomize-btn{padding:10px;border-radius:10px;border:1.5px solid rgba(0,212,255,0.2);background:rgba(0,212,255,0.05);color:var(--cyan);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all .15s;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
-    .randomize-btn:hover{background:rgba(0,212,255,0.15);border-color:var(--cyan)}
-
-    /* status toast */
-    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#000;font-weight:700;font-size:13px;padding:12px 28px;border-radius:30px;z-index:999;font-family:'DM Sans',sans-serif;box-shadow:0 10px 40px rgba(0,229,160,0.3);transition:transform .3s ease}
-    #toast.show{transform:translateX(-50%) translateY(0)}
-    #toast.error{background:var(--danger);color:#fff}
-    #toast.info{background:var(--cyan);color:#000}
-
-    /* loading overlay for models */
-    #model-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
-    #model-overlay.hidden{opacity:0;pointer-events:none}
-    .model-icon{font-size:48px;animation:pulse 2s infinite}
-    .model-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .model-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px}
-    .model-prog{width:280px;height:4px;background:rgba(0,212,255,0.1);border-radius:2px;overflow:hidden}
-    .model-prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .4s;border-radius:2px}
-
-    /* Keyboard shortcuts hint */
-    .shortcuts-hint{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);z-index:100;display:none}
-    .shortcuts-hint.show{display:block}
-    .shortcut-row{display:flex;justify-content:space-between;gap:20px;margin:4px 0}
-    .shortcut-key{background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:var(--text)}
-
-    /* Color picker tooltip */
-    .color-picker-wrap{position:relative}
-    .color-picker-input{position:absolute;opacity:0;width:0;height:0}
-    .custom-color-btn{width:28px;height:28px;border-radius:50%;border:2px dashed rgba(255,255,255,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;background:rgba(255,255,255,0.05)}
-    .custom-color-btn:hover{border-color:var(--cyan);background:rgba(0,212,255,0.1)}
-
-    @media(max-width:768px){
-      .panel-2col{grid-template-columns:1fr}
-      .preset-grid{grid-template-columns:repeat(2,1fr)}
-      .preview-pane{position:static;margin-top:20px}
-      .toolbar{justify-content:flex-start;overflow-x:auto;padding-bottom:8px}
-      .shortcuts-hint{display:none !important}
-    }
-
-    @media(max-width:480px){
-      .app{padding:16px 12px 40px}
-      .tabs{flex-wrap:wrap}
-      .tab{flex:1 1 50%;font-size:12px;padding:12px}
-      .preset-grid{grid-template-columns:1fr 1fr}
-      .share-row{flex-direction:column}
-    }
-  </style>
-</head>
-<body>
-
-<!-- Floating particles -->
-<div class="particles" id="particles"></div>
-
-<!-- Model loading overlay -->
-<div id="model-overlay">
-  <div class="model-icon">🧠</div>
-  <div class="model-title">Loading AI Models</div>
-  <div class="model-sub" id="model-status">Initializing face detection...</div>
-  <div class="model-prog"><div class="model-prog-fill" id="model-prog-fill"></div></div>
-</div>
-
-<div class="app">
-  <header>
-    <div class="badge">EDTECH · AVATAR SYSTEM v3 PRO</div>
-    <h1>Create Your Avatar</h1>
-    <p class="subtitle">Choose a preset, scan your real face, or customize every detail — completely free & private</p>
-  </header>
-
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <button class="toolbar-btn" id="btn-undo" onclick="undo()" disabled title="Ctrl+Z">
-      <span>↶</span> Undo
-    </button>
-    <button class="toolbar-btn" id="btn-redo" onclick="redo()" disabled title="Ctrl+Shift+Z">
-      <span>↷</span> Redo
-    </button>
-    <div class="toolbar-sep"></div>
-    <button class="toolbar-btn" onclick="randomizeAvatar()" title="R">
-      <span>🎲</span> Random
-    </button>
-    <button class="toolbar-btn" onclick="resetToDefault()" title="Ctrl+R">
-      <span>↺</span> Reset
-    </button>
-    <div class="toolbar-sep"></div>
-    <button class="toolbar-btn" onclick="toggleShortcuts()">
-      <span>⌨️</span> Shortcuts
-    </button>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('choose')">🎭 Presets</button>
-    <button class="tab" onclick="switchTab('scan')">
-      📷 Face Scan
-      <span class="tab-badge">AI</span>
-    </button>
-    <button class="tab" onclick="switchTab('edit')">✏️ Customize</button>
-  </div>
-
-  <div class="card">
-    <!-- CHOOSE TAB -->
-    <div id="panel-choose" class="panel panel-2col active">
-      <div>
-        <div class="section">
-          <div class="section-label">Select Gender</div>
-          <div class="gender-toggle">
-            <button class="gender-btn active" id="gbtn-male" onclick="setGender('male')">👨 Male</button>
-            <button class="gender-btn" id="gbtn-female" onclick="setGender('female')">👩 Female</button>
-          </div>
-        </div>
-        <div class="section">
-          <div class="section-label">Choose a Preset</div>
-          <div class="preset-grid" id="preset-grid"></div>
-        </div>
-      </div>
-      <div class="preview-pane">
-        <div class="preview-box" onclick="animatePreview()">
-          <svg id="preview-svg" width="180" height="180" viewBox="0 0 160 160"></svg>
-          <div class="preview-label">CLICK TO ANIMATE</div>
-        </div>
-        <div class="preview-actions">
-          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
-          <div class="export-dropdown">
-            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
-            <div class="export-menu" id="export-menu">
-              <div class="export-item" onclick="exportAs('svg')">📄 Export SVG <span>.svg</span></div>
-              <div class="export-item" onclick="exportAs('png')">🖼️ Export PNG <span>.png</span></div>
-              <div class="export-item" onclick="exportAs('json')">📋 Export Data <span>.json</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="share-row">
-          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
-          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCAN TAB -->
-    <div id="panel-scan" class="panel panel-2col">
-      <div>
-        <div class="scan-wrap" id="scan-wrap">
-          <div class="quality-indicator" id="quality-indicator">
-            <div class="quality-dot"></div>
-            <div class="quality-dot"></div>
-            <div class="quality-dot"></div>
-            <div class="quality-dot"></div>
-            <div class="quality-dot"></div>
-          </div>
-          <div class="corner tl"></div>
-          <div class="corner tr"></div>
-          <div class="corner bl"></div>
-          <div class="corner br"></div>
-          <div class="face-oval"></div>
-          <div class="scan-line"></div>
-          <video id="video" autoplay muted playsinline></video>
-          <canvas id="scan-canvas"></canvas>
-          <canvas id="overlay-canvas"></canvas>
-          <div class="scan-msg" id="scan-msg">Position your face inside the oval</div>
-        </div>
-
-        <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
-
-        <div class="scan-actions">
-          <button class="scan-btn scan-btn-primary" id="btn-scan" onclick="startScan()">
-            📷 Start Scanning
-          </button>
-          <button class="scan-btn scan-btn-secondary" id="btn-rescan" onclick="resetScan()" style="display:none">
-            🔄 Re-scan
-          </button>
-          <button class="scan-btn scan-btn-secondary" id="btn-customize" onclick="switchTab('edit')" style="display:none">
-            ✏️ Customize
-          </button>
-        </div>
-
-        <div class="privacy-chips">
-          <div class="chip"><span class="chip-icon">🔒</span> Fully Private</div>
-          <div class="chip"><span class="chip-icon">📍</span> 100% Local</div>
-          <div class="chip"><span class="chip-icon">🚫</span> Never Uploaded</div>
-          <div class="chip"><span class="chip-icon">🆓</span> Free Forever</div>
-        </div>
-
-        <!-- Detected data readout -->
-        <div class="data-readout" id="data-readout">
-          <div class="section-label">Detected Features</div>
-          <div class="data-row"><span class="data-key">GENDER</span><span class="data-val" id="dr-gender">—</span></div>
-          <div class="data-row"><span class="data-key">AGE</span><span class="data-val" id="dr-age">—</span></div>
-          <div class="data-row"><span class="data-key">SKIN TONE</span><span class="data-val"><span class="color-dot" id="dr-skin-dot"></span><span id="dr-skin">—</span></span></div>
-          <div class="data-row"><span class="data-key">HAIR</span><span class="data-val"><span class="color-dot" id="dr-hair-dot"></span><span id="dr-hair">—</span></span></div>
-          <div class="data-row"><span class="data-key">EYE COLOR</span><span class="data-val"><span class="color-dot" id="dr-eye-dot"></span><span id="dr-eye">—</span></span></div>
-          <div class="data-row"><span class="data-key">EXPRESSION</span><span class="data-val" id="dr-expression">—</span></div>
-          <div class="data-row"><span class="data-key">CONFIDENCE</span><span class="data-val" id="dr-conf">—</span></div>
-        </div>
-      </div>
-
-      <div class="preview-pane">
-        <div class="preview-box" onclick="animatePreview()">
-          <svg id="preview-svg-scan" width="180" height="180" viewBox="0 0 160 160"></svg>
-          <div class="preview-label">PREVIEW</div>
-        </div>
-        <div class="preview-actions">
-          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
-          <div class="export-dropdown">
-            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
-          </div>
-        </div>
-        <div class="share-row">
-          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
-          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- EDIT TAB -->
-    <div id="panel-edit" class="panel panel-2col">
-      <div class="edit-scroll">
-        <div class="section">
-          <div class="section-label">Gender</div>
-          <div class="gender-toggle">
-            <button class="gender-btn active" id="ebtn-male" onclick="editGender('male')">👨 Male</button>
-            <button class="gender-btn" id="ebtn-female" onclick="editGender('female')">👩 Female</button>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Face Shape</div>
-          <div class="pills" id="edit-faceshape"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Skin Tone</div>
-          <div class="swatches" id="edit-skin"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Hair Style</div>
-          <div class="pills" id="edit-hairstyle"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Hair Color</div>
-          <div class="swatches" id="edit-hair"></div>
-        </div>
-
-        <div class="section" id="facial-hair-section">
-          <div class="section-label">Facial Hair</div>
-          <div class="pills" id="edit-facialhair"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Eyebrow Style</div>
-          <div class="pills" id="edit-eyebrows"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Eye Shape</div>
-          <div class="pills" id="edit-eyeshape"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Eye Color</div>
-          <div class="swatches" id="edit-eye"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Nose Style</div>
-          <div class="pills" id="edit-nose"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Lip Style</div>
-          <div class="pills" id="edit-lipstyle"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Lip Color</div>
-          <div class="swatches" id="edit-lip"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Accessory</div>
-          <div class="pills" id="edit-accessory"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Outfit</div>
-          <div class="pills" id="edit-outfit"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Background</div>
-          <div class="swatches" id="edit-bg"></div>
-        </div>
-
-        <button class="reset-btn" onclick="resetToDefault()">↩ Reset All to Default</button>
-        <button class="randomize-btn" onclick="randomizeAvatar()">🎲 Randomize Avatar</button>
-      </div>
-
-      <div class="preview-pane">
-        <div class="preview-box" onclick="animatePreview()">
-          <svg id="preview-svg-edit" width="180" height="180" viewBox="0 0 160 160"></svg>
-          <div class="preview-label">CLICK TO ANIMATE</div>
-        </div>
-        <div class="preview-actions">
-          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
-          <div class="export-dropdown">
-            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
-          </div>
-        </div>
-        <div class="share-row">
-          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
-          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
-        </div>
-        <div class="mini-presets">
-          <div class="mini-label">Quick Apply Presets</div>
-          <div class="mini-row" id="mini-presets-row"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Toast notification -->
-<div id="toast">✓ Saved!</div>
-
-<!-- Keyboard shortcuts hint -->
-<div class="shortcuts-hint" id="shortcuts-hint">
-  <div style="margin-bottom:8px;color:var(--cyan)">Keyboard Shortcuts</div>
-  <div class="shortcut-row"><span>Undo</span><span class="shortcut-key">Ctrl+Z</span></div>
-  <div class="shortcut-row"><span>Redo</span><span class="shortcut-key">Ctrl+Shift+Z</span></div>
-  <div class="shortcut-row"><span>Random</span><span class="shortcut-key">R</span></div>
-  <div class="shortcut-row"><span>Save</span><span class="shortcut-key">Ctrl+S</span></div>
-  <div class="shortcut-row"><span>Reset</span><span class="shortcut-key">Ctrl+R</span></div>
-</div>
-
-<script>
 // ══════════════════════════════════════════════════════════════════════════════
 // PALETTES & OPTIONS
 // ══════════════════════════════════════════════════════════════════════════════
@@ -709,12 +165,9 @@ const history = {
   maxSize: 50,
   
   push(state) {
-    // Remove any states after current index
     this.states = this.states.slice(0, this.index + 1);
-    // Add new state
     this.states.push(JSON.parse(JSON.stringify(state)));
     this.index++;
-    // Limit size
     if (this.states.length > this.maxSize) {
       this.states.shift();
       this.index--;
@@ -778,7 +231,6 @@ const PRESETS = {
 function buildAvatarSVG(cfg, size = 160) {
   const {gender, faceShape, skin, hair, hairStyle, facialHair, eyebrows, eyeShape, eye, nose, lipStyle, lip, bg, accessory, outfit, outfitColor} = cfg;
 
-  // Face shape modifications
   function getFaceShape() {
     switch(faceShape) {
       case "round": return `<ellipse cx="80" cy="90" rx="38" ry="38" fill="${skin}"/>`;
@@ -789,10 +241,8 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Hair styles
   function getHairStyle() {
     if (hairStyle === "bald") return "";
-    
     if (gender === "male") {
       switch(hairStyle) {
         case "short":
@@ -855,7 +305,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Eyebrows
   function getEyebrows() {
     const browColor = hair === "#F5E6C8" || hair === "#E8C86D" ? "#8B6914" : "#3D2010";
     switch(eyebrows) {
@@ -880,7 +329,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Eyes
   function getEyes() {
     let eyeWhite, pupil, highlight;
     switch(eyeShape) {
@@ -908,7 +356,6 @@ function buildAvatarSVG(cfg, size = 160) {
     return eyeWhite + pupil + highlight;
   }
 
-  // Nose
   function getNose() {
     switch(nose) {
       case "small":
@@ -924,7 +371,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Lips
   function getLips() {
     switch(lipStyle) {
       case "thin":
@@ -943,7 +389,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Facial hair
   function getFacialHair() {
     if (!facialHair || facialHair === "none" || gender === "female") return "";
     const hairDark = hair === "#F5E6C8" || hair === "#E8C86D" ? "#8B6914" : hair;
@@ -964,7 +409,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Accessories
   function getAccessory() {
     if (!accessory || accessory === "none") return "";
     switch(accessory) {
@@ -1015,7 +459,6 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Outfit/body
   function getOutfit() {
     const color = outfitColor || "#4A90E2";
     switch(outfit) {
@@ -1057,7 +500,7 @@ function buildAvatarSVG(cfg, size = 160) {
                 <line x1="80" y1="148" x2="80" y2="168" stroke="#333" stroke-width="1"/>
                 <rect x="78" y="150" width="4" height="8" fill="#8B0000"/>
                 <circle cx="80" cy="162" r="2" fill="#F6A623"/>`;
-      default: // casual
+      default:
         return `<ellipse cx="80" cy="162" rx="48" ry="22" fill="${color}"/>
                 <rect x="68" y="120" width="24" height="30" fill="${skin}" rx="8"/>
                 <path d="M48 148 Q80 140 112 148 L112 162 L48 162 Z" fill="${color}"/>
@@ -1065,13 +508,11 @@ function buildAvatarSVG(cfg, size = 160) {
     }
   }
 
-  // Ears
   function getEars() {
     return `<ellipse cx="42" cy="90" rx="7" ry="10" fill="${skin}"/>
             <ellipse cx="118" cy="90" rx="7" ry="10" fill="${skin}"/>`;
   }
 
-  const scale = size / 160;
   return `<svg width="${size}" height="${size}" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <clipPath id="avatar-clip">
@@ -1103,12 +544,9 @@ function updateAllPreviews() {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, 'image/svg+xml');
   const inner = doc.documentElement.innerHTML;
-  
   ["preview-svg", "preview-svg-scan", "preview-svg-edit"].forEach(id => {
     const el = document.getElementById(id);
-    if (el) {
-      el.innerHTML = inner;
-    }
+    if (el) el.innerHTML = inner;
   });
 }
 
@@ -1122,36 +560,22 @@ function animatePreview() {
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  
   document.querySelector(`.tab:nth-child(${tab === 'choose' ? 1 : tab === 'scan' ? 2 : 3})`).classList.add('active');
   document.getElementById(`panel-${tab}`).classList.add('active');
-  
-  if (tab === 'scan') {
-    initCamera();
-  } else {
-    stopCamera();
-  }
-  
-  if (tab === 'edit') {
-    buildEditControls();
-  }
+  if (tab === 'scan') initCamera();
+  else stopCamera();
+  if (tab === 'edit') buildEditControls();
 }
 
 function buildPresetGrid() {
   const grid = document.getElementById("preset-grid");
   grid.innerHTML = "";
-  
-  PRESETS[currentGender].forEach((p, i) => {
+  PRESETS[currentGender].forEach((p) => {
     const svg = buildAvatarSVG(p, 80);
     const isSelected = JSON.stringify(avatar) === JSON.stringify({...p});
-    
     const div = document.createElement("div");
     div.className = "preset-card" + (isSelected ? " selected" : "");
-    div.innerHTML = `
-      ${svg}
-      <div class="preset-name">${p.name}</div>
-      ${isSelected ? '<div class="selected-badge">✓ ACTIVE</div>' : ''}
-    `;
+    div.innerHTML = `${svg}<div class="preset-name">${p.name}</div>${isSelected ? '<div class="selected-badge">✓ ACTIVE</div>' : ''}`;
     div.onclick = () => {
       avatar = {...p};
       saveToHistory();
@@ -1161,7 +585,6 @@ function buildPresetGrid() {
     };
     grid.appendChild(div);
   });
-  
   buildMiniPresets();
 }
 
@@ -1169,8 +592,7 @@ function buildMiniPresets() {
   const row = document.getElementById("mini-presets-row");
   if (!row) return;
   row.innerHTML = "";
-  
-  PRESETS[currentGender].forEach((p, i) => {
+  PRESETS[currentGender].forEach((p) => {
     const btn = document.createElement("button");
     const isSelected = JSON.stringify(avatar) === JSON.stringify({...p});
     btn.className = "mini-card" + (isSelected ? " selected" : "");
@@ -1191,10 +613,8 @@ function setGender(g) {
   avatar.gender = g;
   avatar.hairStyle = g === "male" ? "short" : "long";
   avatar.facialHair = "none";
-  
   document.getElementById("gbtn-male").classList.toggle("active", g === "male");
   document.getElementById("gbtn-female").classList.toggle("active", g === "female");
-  
   saveToHistory();
   buildPresetGrid();
   updateAllPreviews();
@@ -1205,10 +625,8 @@ function editGender(g) {
   currentGender = g;
   avatar.hairStyle = g === "male" ? "short" : "long";
   avatar.facialHair = "none";
-  
   document.getElementById("ebtn-male").classList.toggle("active", g === "male");
   document.getElementById("ebtn-female").classList.toggle("active", g === "female");
-  
   saveToHistory();
   buildEditControls();
   updateAllPreviews();
@@ -1223,7 +641,6 @@ function makeSwatch(containerId, palette, avatarKey, labels = null) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = "";
-  
   palette.forEach((c, i) => {
     const btn = document.createElement("button");
     btn.className = "swatch" + (avatar[avatarKey] === c ? " selected" : "");
@@ -1237,17 +654,10 @@ function makeSwatch(containerId, palette, avatarKey, labels = null) {
     };
     el.appendChild(btn);
   });
-  
-  // Add custom color picker
   const picker = document.createElement("div");
   picker.className = "color-picker-wrap";
-  picker.innerHTML = `
-    <button class="custom-color-btn" title="Custom color">+</button>
-    <input type="color" class="color-picker-input" value="${avatar[avatarKey]}">
-  `;
-  picker.querySelector('.custom-color-btn').onclick = () => {
-    picker.querySelector('.color-picker-input').click();
-  };
+  picker.innerHTML = `<button class="custom-color-btn" title="Custom color">+</button><input type="color" class="color-picker-input" value="${avatar[avatarKey]}">`;
+  picker.querySelector('.custom-color-btn').onclick = () => picker.querySelector('.color-picker-input').click();
   picker.querySelector('.color-picker-input').onchange = (e) => {
     avatar[avatarKey] = e.target.value;
     saveToHistory();
@@ -1261,7 +671,6 @@ function makePills(containerId, options, avatarKey) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = "";
-  
   options.forEach(o => {
     const btn = document.createElement("button");
     btn.className = "pill" + (avatar[avatarKey] === o.id ? " selected" : "");
@@ -1278,74 +687,35 @@ function makePills(containerId, options, avatarKey) {
 }
 
 function buildEditControls() {
-  // Gender buttons
   document.getElementById("ebtn-male").classList.toggle("active", avatar.gender === "male");
   document.getElementById("ebtn-female").classList.toggle("active", avatar.gender === "female");
-  
-  // Face shape
   makePills("edit-faceshape", FACE_SHAPES, "faceShape");
-  
-  // Skin
   makeSwatch("edit-skin", SKIN, "skin");
-  
-  // Hair
   makePills("edit-hairstyle", HAIR_STYLES[avatar.gender], "hairStyle");
   makeSwatch("edit-hair", HAIR, "hair");
-  
-  // Facial hair (show/hide based on gender)
   const facialHairSection = document.getElementById("facial-hair-section");
-  if (facialHairSection) {
-    facialHairSection.style.display = avatar.gender === "male" ? "block" : "none";
-  }
+  if (facialHairSection) facialHairSection.style.display = avatar.gender === "male" ? "block" : "none";
   makePills("edit-facialhair", FACIAL_HAIR[avatar.gender], "facialHair");
-  
-  // Eyebrows
   makePills("edit-eyebrows", EYEBROW_STYLES, "eyebrows");
-  
-  // Eyes
   makePills("edit-eyeshape", EYE_SHAPES, "eyeShape");
   makeSwatch("edit-eye", EYE, "eye");
-  
-  // Nose
   makePills("edit-nose", NOSE_STYLES, "nose");
-  
-  // Lips
   makePills("edit-lipstyle", LIP_STYLES, "lipStyle");
   makeSwatch("edit-lip", LIP, "lip");
-  
-  // Accessories
   makePills("edit-accessory", ACCESSORIES, "accessory");
-  
-  // Outfit
   makePills("edit-outfit", OUTFITS, "outfit");
-  
-  // Background
   makeSwatch("edit-bg", BG, "bg");
-  
   buildMiniPresets();
 }
 
 function resetToDefault() {
   avatar = {
-    gender: "male",
-    faceShape: "oval",
-    skin: SKIN[0],
-    hair: HAIR[0],
-    hairStyle: "short",
-    facialHair: "none",
-    eyebrows: "normal",
-    eyeShape: "normal",
-    eye: EYE[2],
-    nose: "normal",
-    lipStyle: "normal",
-    lip: LIP[0],
-    bg: BG[0],
-    accessory: "none",
-    outfit: "casual",
-    outfitColor: "#4A90E2"
+    gender: "male", faceShape: "oval", skin: SKIN[0], hair: HAIR[0],
+    hairStyle: "short", facialHair: "none", eyebrows: "normal", eyeShape: "normal",
+    eye: EYE[2], nose: "normal", lipStyle: "normal", lip: LIP[0],
+    bg: BG[0], accessory: "none", outfit: "casual", outfitColor: "#4A90E2"
   };
   currentGender = "male";
-  
   saveToHistory();
   buildEditControls();
   updateAllPreviews();
@@ -1355,7 +725,6 @@ function resetToDefault() {
 
 function randomizeAvatar() {
   const randomFrom = arr => arr[Math.floor(Math.random() * arr.length)];
-  
   avatar.gender = Math.random() > 0.5 ? "male" : "female";
   currentGender = avatar.gender;
   avatar.faceShape = randomFrom(FACE_SHAPES).id;
@@ -1374,7 +743,6 @@ function randomizeAvatar() {
   const outfitChoice = randomFrom(OUTFITS);
   avatar.outfit = outfitChoice.id;
   avatar.outfitColor = outfitChoice.color;
-  
   saveToHistory();
   buildEditControls();
   updateAllPreviews();
@@ -1386,9 +754,7 @@ function randomizeAvatar() {
 // HISTORY (UNDO/REDO)
 // ══════════════════════════════════════════════════════════════════════════════
 
-function saveToHistory() {
-  history.push(avatar);
-}
+function saveToHistory() { history.push(avatar); }
 
 function undo() {
   const state = history.undo();
@@ -1420,25 +786,18 @@ function redo() {
 
 function saveAvatar() {
   localStorage.setItem('edtech-avatar', JSON.stringify(avatar));
-  
   const buttons = document.querySelectorAll('.save-btn');
   buttons.forEach(btn => {
     btn.classList.add('saved');
     btn.textContent = '✓ Saved!';
-    setTimeout(() => {
-      btn.classList.remove('saved');
-      btn.textContent = '💾 Save Avatar';
-    }, 2000);
+    setTimeout(() => { btn.classList.remove('saved'); btn.textContent = '💾 Save Avatar'; }, 2000);
   });
-  
   showToast("✓ Avatar saved to browser!");
 }
 
 function toggleExportMenu() {
   const menu = document.getElementById('export-menu');
   menu.classList.toggle('show');
-  
-  // Close when clicking outside
   setTimeout(() => {
     document.addEventListener('click', function closeMenu(e) {
       if (!e.target.closest('.export-dropdown')) {
@@ -1451,30 +810,23 @@ function toggleExportMenu() {
 
 async function exportAs(format) {
   const svg = buildAvatarSVG(avatar, 512);
-  
   switch(format) {
     case 'svg':
       downloadFile(new Blob([svg], {type: 'image/svg+xml'}), 'avatar.svg');
       showToast("📄 SVG downloaded!");
       break;
-      
     case 'png':
       try {
         const pngBlob = await convertSVGtoPNG(svg, 512);
         downloadFile(pngBlob, 'avatar.png');
         showToast("🖼️ PNG downloaded!");
-      } catch(e) {
-        showToast("❌ PNG export failed", "error");
-      }
+      } catch(e) { showToast("❌ PNG export failed", "error"); }
       break;
-      
     case 'json':
-      const json = JSON.stringify(avatar, null, 2);
-      downloadFile(new Blob([json], {type: 'application/json'}), 'avatar-data.json');
+      downloadFile(new Blob([JSON.stringify(avatar, null, 2)], {type: 'application/json'}), 'avatar-data.json');
       showToast("📋 Data exported!");
       break;
   }
-  
   document.getElementById('export-menu').classList.remove('show');
 }
 
@@ -1483,42 +835,28 @@ async function convertSVGtoPNG(svgString, size) {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
     const ctx = canvas.getContext('2d');
-    
     const img = new Image();
     img.onload = () => {
       ctx.drawImage(img, 0, 0, size, size);
-      canvas.toBlob(blob => {
-        if (blob) resolve(blob);
-        else reject(new Error('Failed to create blob'));
-      }, 'image/png');
+      canvas.toBlob(blob => { if (blob) resolve(blob); else reject(new Error('Failed')); }, 'image/png');
     };
     img.onerror = reject;
-    
-    const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
-    img.src = URL.createObjectURL(svgBlob);
+    img.src = URL.createObjectURL(new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'}));
   });
 }
 
 function downloadFile(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function copyAvatarLink() {
   const data = btoa(JSON.stringify(avatar));
   const url = window.location.href.split('?')[0] + '?avatar=' + data;
-  
-  navigator.clipboard.writeText(url).then(() => {
-    showToast("🔗 Link copied!");
-  }).catch(() => {
-    showToast("❌ Failed to copy", "error");
-  });
+  navigator.clipboard.writeText(url).then(() => showToast("🔗 Link copied!")).catch(() => showToast("❌ Failed to copy", "error"));
 }
 
 async function shareAvatar() {
@@ -1527,73 +865,35 @@ async function shareAvatar() {
       const svg = buildAvatarSVG(avatar, 512);
       const pngBlob = await convertSVGtoPNG(svg, 512);
       const file = new File([pngBlob], 'my-avatar.png', {type: 'image/png'});
-      
-      await navigator.share({
-        files: [file],
-        title: 'My Custom Avatar',
-        text: 'Check out my custom avatar!'
-      });
+      await navigator.share({ files: [file], title: 'My Custom Avatar', text: 'Check out my custom avatar!' });
       showToast("📤 Shared!");
-    } catch(e) {
-      if (e.name !== 'AbortError') {
-        // Fallback to link sharing
-        copyAvatarLink();
-      }
-    }
-  } else {
-    copyAvatarLink();
-  }
+    } catch(e) { if (e.name !== 'AbortError') copyAvatarLink(); }
+  } else { copyAvatarLink(); }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TOAST NOTIFICATIONS
+// TOAST
 // ══════════════════════════════════════════════════════════════════════════════
 
 function showToast(message, type = 'success') {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.className = 'show' + (type !== 'success' ? ' ' + type : '');
-  
-  setTimeout(() => {
-    toast.className = '';
-  }, 3000);
+  setTimeout(() => { toast.className = ''; }, 3000);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
 // KEYBOARD SHORTCUTS
 // ══════════════════════════════════════════════════════════════════════════════
 
-function toggleShortcuts() {
-  document.getElementById('shortcuts-hint').classList.toggle('show');
-}
+function toggleShortcuts() { document.getElementById('shortcuts-hint').classList.toggle('show'); }
 
 document.addEventListener('keydown', (e) => {
-  // Don't trigger if typing in an input
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-  
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-    e.preventDefault();
-    if (e.shiftKey) {
-      redo();
-    } else {
-      undo();
-    }
-  }
-  
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault();
-    saveAvatar();
-  }
-  
-  if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-    e.preventDefault();
-    resetToDefault();
-  }
-  
-  if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
-    randomizeAvatar();
-  }
-  
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveAvatar(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); resetToDefault(); }
+  if (e.key === 'r' && !e.ctrlKey && !e.metaKey) randomizeAvatar();
   if (e.key === 'Escape') {
     document.getElementById('shortcuts-hint').classList.remove('show');
     document.getElementById('export-menu').classList.remove('show');
@@ -1608,213 +908,117 @@ async function loadModels() {
   const overlay = document.getElementById('model-overlay');
   const status = document.getElementById('model-status');
   const progress = document.getElementById('model-prog-fill');
-  
   try {
-    status.textContent = 'Loading TinyFaceDetector...';
-    progress.style.width = '20%';
+    status.textContent = 'Loading TinyFaceDetector...'; progress.style.width = '20%';
     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    
-    status.textContent = 'Loading Face Landmarks...';
-    progress.style.width = '40%';
+    status.textContent = 'Loading Face Landmarks...'; progress.style.width = '40%';
     await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-    
-    status.textContent = 'Loading Face Recognition...';
-    progress.style.width = '60%';
+    status.textContent = 'Loading Face Recognition...'; progress.style.width = '60%';
     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-    
-    status.textContent = 'Loading Age & Gender...';
-    progress.style.width = '80%';
+    status.textContent = 'Loading Age & Gender...'; progress.style.width = '80%';
     await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
-    
-    status.textContent = 'Loading Expressions...';
-    progress.style.width = '100%';
+    status.textContent = 'Loading Expressions...'; progress.style.width = '100%';
     await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-    
     status.textContent = 'Ready!';
-    
-    setTimeout(() => {
-      overlay.classList.add('hidden');
-    }, 500);
-    
-  } catch(e) {
-    status.textContent = 'Failed to load models. Please refresh.';
-    console.error('Model loading error:', e);
-  }
+    setTimeout(() => { overlay.classList.add('hidden'); }, 500);
+  } catch(e) { status.textContent = 'Failed to load models. Please refresh.'; console.error(e); }
 }
 
 async function initCamera() {
   const video = document.getElementById('video');
-  
   if (videoStream) return;
-  
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-    });
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
     video.srcObject = videoStream;
-    
     document.getElementById('scan-msg').textContent = 'Position your face inside the oval';
     document.getElementById('btn-scan').disabled = false;
-    
   } catch(e) {
     document.getElementById('scan-msg').textContent = '⚠️ Camera access denied';
     document.getElementById('scan-msg').classList.add('error');
-    console.error('Camera error:', e);
   }
 }
 
 function stopCamera() {
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-    videoStream = null;
-  }
-  if (detectionInterval) {
-    clearInterval(detectionInterval);
-    detectionInterval = null;
-  }
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  if (detectionInterval) { clearInterval(detectionInterval); detectionInterval = null; }
 }
 
 async function startScan() {
   if (scanning) return;
   scanning = true;
-  
   const scanWrap = document.getElementById('scan-wrap');
   const scanMsg = document.getElementById('scan-msg');
   const progBar = document.getElementById('prog-bar');
   const btnScan = document.getElementById('btn-scan');
   const video = document.getElementById('video');
   const overlayCanvas = document.getElementById('overlay-canvas');
-  
   scanWrap.classList.add('scanning');
   btnScan.disabled = true;
   btnScan.textContent = '🔄 Scanning...';
   scanMsg.textContent = 'Analyzing your face...';
   scanMsg.className = 'scan-msg';
-  
-  let progress = 0;
-  let detectedData = null;
   let frameCount = 0;
   const maxFrames = 30;
-  
-  // Setup overlay canvas
   overlayCanvas.width = video.videoWidth;
   overlayCanvas.height = video.videoHeight;
   const ctx = overlayCanvas.getContext('2d');
-  
   detectionInterval = setInterval(async () => {
     try {
       const detections = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptor()
-        .withAgeAndGender()
-        .withFaceExpressions();
-      
-      // Clear and draw overlay
+        .withFaceLandmarks().withFaceDescriptor().withAgeAndGender().withFaceExpressions();
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      
       if (detections) {
         frameCount++;
-        progress = Math.min(100, (frameCount / maxFrames) * 100);
+        const progress = Math.min(100, (frameCount / maxFrames) * 100);
         progBar.style.width = progress + '%';
-        
-        // Draw face detection overlay
         drawFaceOverlay(ctx, detections, overlayCanvas.width, overlayCanvas.height);
-        
-        // Update quality indicator
         updateQualityIndicator(detections);
-        
         scanWrap.classList.add('face-detected');
         scanMsg.textContent = `Analyzing... ${Math.round(progress)}%`;
-        
-        if (frameCount >= maxFrames) {
-          detectedData = detections;
-          clearInterval(detectionInterval);
-          finishScan(detectedData);
-        }
+        if (frameCount >= maxFrames) { clearInterval(detectionInterval); finishScan(detections); }
       } else {
         scanWrap.classList.remove('face-detected');
         scanMsg.textContent = 'Position your face inside the oval';
         updateQualityIndicator(null);
       }
-      
-    } catch(e) {
-      console.error('Detection error:', e);
-    }
+    } catch(e) { console.error('Detection error:', e); }
   }, 100);
 }
 
 function drawFaceOverlay(ctx, detections, width, height) {
   const box = detections.detection.box;
-  
-  // Draw bounding box
-  ctx.strokeStyle = '#00D4FF';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([5, 5]);
-  ctx.strokeRect(box.x, box.y, box.width, box.height);
-  ctx.setLineDash([]);
-  
-  // Draw landmarks
+  ctx.strokeStyle = '#00D4FF'; ctx.lineWidth = 3; ctx.setLineDash([5, 5]);
+  ctx.strokeRect(box.x, box.y, box.width, box.height); ctx.setLineDash([]);
   const landmarks = detections.landmarks.positions;
   ctx.fillStyle = '#00E5A0';
-  landmarks.forEach(point => {
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
-    ctx.fill();
-  });
-  
-  // Draw face contour
-  ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)';
-  ctx.lineWidth = 1;
+  landmarks.forEach(point => { ctx.beginPath(); ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI); ctx.fill(); });
+  ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)'; ctx.lineWidth = 1;
   const jawline = landmarks.slice(0, 17);
   ctx.beginPath();
-  jawline.forEach((point, i) => {
-    if (i === 0) ctx.moveTo(point.x, point.y);
-    else ctx.lineTo(point.x, point.y);
-  });
+  jawline.forEach((point, i) => { if (i === 0) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y); });
   ctx.stroke();
 }
 
 function updateQualityIndicator(detections) {
   const dots = document.querySelectorAll('.quality-dot');
-  
-  if (!detections) {
-    dots.forEach(dot => {
-      dot.classList.remove('active', 'warning');
-    });
-    return;
-  }
-  
+  if (!detections) { dots.forEach(dot => dot.classList.remove('active', 'warning')); return; }
   const box = detections.detection.box;
   const video = document.getElementById('video');
-  
-  // Calculate quality metrics
   const faceSize = (box.width * box.height) / (video.videoWidth * video.videoHeight);
   const faceCentered = Math.abs(box.x + box.width/2 - video.videoWidth/2) < video.videoWidth * 0.2;
   const goodSize = faceSize > 0.1 && faceSize < 0.5;
   const confidence = detections.detection.score;
-  
-  const quality = [
-    confidence > 0.5,
-    confidence > 0.7,
-    goodSize,
-    faceCentered,
-    confidence > 0.85 && goodSize && faceCentered
-  ];
-  
+  const quality = [confidence > 0.5, confidence > 0.7, goodSize, faceCentered, confidence > 0.85 && goodSize && faceCentered];
   dots.forEach((dot, i) => {
     dot.classList.remove('active', 'warning');
-    if (quality[i]) {
-      dot.classList.add('active');
-    } else if (i < quality.filter(q => q).length + 1) {
-      dot.classList.add('warning');
-    }
+    if (quality[i]) dot.classList.add('active');
+    else if (i < quality.filter(q => q).length + 1) dot.classList.add('warning');
   });
 }
 
 function finishScan(detections) {
   scanning = false;
-  
   const scanWrap = document.getElementById('scan-wrap');
   const scanMsg = document.getElementById('scan-msg');
   const progBar = document.getElementById('prog-bar');
@@ -1822,30 +1026,19 @@ function finishScan(detections) {
   const btnRescan = document.getElementById('btn-rescan');
   const btnCustomize = document.getElementById('btn-customize');
   const dataReadout = document.getElementById('data-readout');
-  
   scanWrap.classList.remove('scanning');
   scanMsg.textContent = '✓ Face detected successfully!';
   scanMsg.classList.add('success');
   progBar.style.width = '100%';
-  
   btnScan.style.display = 'none';
   btnRescan.style.display = 'flex';
   btnCustomize.style.display = 'flex';
-  
-  // Process detected features
   const gender = detections.gender;
   const age = Math.round(detections.age);
   const expressions = detections.expressions;
   const confidence = Math.round(detections.detection.score * 100);
-  
-  // Get dominant expression
-  const dominantExpression = Object.entries(expressions)
-    .sort((a, b) => b[1] - a[1])[0][0];
-  
-  // Estimate colors from face region
+  const dominantExpression = Object.entries(expressions).sort((a, b) => b[1] - a[1])[0][0];
   const colors = estimateColorsFromFace(detections);
-  
-  // Update data readout
   document.getElementById('dr-gender').textContent = gender === 'male' ? '👨 Male' : '👩 Female';
   document.getElementById('dr-age').textContent = `${age} years`;
   document.getElementById('dr-skin').textContent = 'Detected';
@@ -1856,10 +1049,7 @@ function finishScan(detections) {
   document.getElementById('dr-eye-dot').style.background = colors.eye;
   document.getElementById('dr-expression').textContent = dominantExpression.charAt(0).toUpperCase() + dominantExpression.slice(1);
   document.getElementById('dr-conf').textContent = `${confidence}%`;
-  
   dataReadout.classList.add('visible');
-  
-  // Apply detected features to avatar
   avatar.gender = gender;
   currentGender = gender;
   avatar.skin = findClosestColor(colors.skin, SKIN);
@@ -1867,29 +1057,17 @@ function finishScan(detections) {
   avatar.eye = findClosestColor(colors.eye, EYE);
   avatar.hairStyle = gender === 'male' ? 'short' : 'long';
   avatar.facialHair = gender === 'male' && age > 18 ? 'stubble' : 'none';
-  
-  // Expression-based lip style
   if (dominantExpression === 'happy') avatar.lipStyle = 'smile';
   else if (dominantExpression === 'surprised') avatar.lipStyle = 'pout';
   else avatar.lipStyle = 'normal';
-  
   saveToHistory();
   updateAllPreviews();
   buildEditControls();
   buildPresetGrid();
-  
   showToast("✓ Face scanned! Customize your avatar now.");
 }
 
 function estimateColorsFromFace(detections) {
-  // Since we can't directly sample pixels from video,
-  // we'll use reasonable defaults based on common distributions
-  // In a real implementation, you'd use canvas to sample actual pixels
-  
-  const landmarks = detections.landmarks;
-  
-  // Use random but reasonable colors for demonstration
-  // In production, you'd actually sample the video frame
   return {
     skin: SKIN[Math.floor(Math.random() * 6)],
     hair: HAIR[Math.floor(Math.random() * 6)],
@@ -1898,35 +1076,20 @@ function estimateColorsFromFace(detections) {
 }
 
 function findClosestColor(targetColor, palette) {
-  // Simple color matching - returns closest color from palette
-  // In production, use proper color distance algorithm (LAB, etc.)
   const target = hexToRgb(targetColor);
   let closest = palette[0];
   let minDistance = Infinity;
-  
   palette.forEach(color => {
     const rgb = hexToRgb(color);
-    const distance = Math.sqrt(
-      Math.pow(target.r - rgb.r, 2) +
-      Math.pow(target.g - rgb.g, 2) +
-      Math.pow(target.b - rgb.b, 2)
-    );
-    if (distance < minDistance) {
-      minDistance = distance;
-      closest = color;
-    }
+    const distance = Math.sqrt(Math.pow(target.r-rgb.r,2)+Math.pow(target.g-rgb.g,2)+Math.pow(target.b-rgb.b,2));
+    if (distance < minDistance) { minDistance = distance; closest = color; }
   });
-  
   return closest;
 }
 
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : {r: 0, g: 0, b: 0};
+  return result ? { r: parseInt(result[1],16), g: parseInt(result[2],16), b: parseInt(result[3],16) } : {r:0,g:0,b:0};
 }
 
 function resetScan() {
@@ -1938,42 +1101,26 @@ function resetScan() {
   const btnCustomize = document.getElementById('btn-customize');
   const dataReadout = document.getElementById('data-readout');
   const overlayCanvas = document.getElementById('overlay-canvas');
-  
   scanning = false;
-  if (detectionInterval) {
-    clearInterval(detectionInterval);
-    detectionInterval = null;
-  }
-  
+  if (detectionInterval) { clearInterval(detectionInterval); detectionInterval = null; }
   scanWrap.classList.remove('scanning', 'face-detected');
   scanMsg.textContent = 'Position your face inside the oval';
   scanMsg.className = 'scan-msg';
   progBar.style.width = '0%';
-  
-  btnScan.style.display = 'flex';
-  btnScan.disabled = false;
-  btnScan.textContent = '📷 Start Scanning';
-  btnRescan.style.display = 'none';
-  btnCustomize.style.display = 'none';
-  
+  btnScan.style.display = 'flex'; btnScan.disabled = false; btnScan.textContent = '📷 Start Scanning';
+  btnRescan.style.display = 'none'; btnCustomize.style.display = 'none';
   dataReadout.classList.remove('visible');
-  
-  // Clear overlay
-  const ctx = overlayCanvas.getContext('2d');
-  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  
+  overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
   updateQualityIndicator(null);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PARTICLES ANIMATION
+// PARTICLES
 // ══════════════════════════════════════════════════════════════════════════════
 
 function createParticles() {
   const container = document.getElementById('particles');
-  const count = 20;
-  
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < 20; i++) {
     const particle = document.createElement('div');
     particle.className = 'particle';
     particle.style.left = Math.random() * 100 + '%';
@@ -1995,9 +1142,7 @@ function loadFromURL() {
       avatar = {...avatar, ...data};
       currentGender = avatar.gender;
       showToast("🔗 Avatar loaded from link!", "info");
-    } catch(e) {
-      console.error('Failed to load avatar from URL:', e);
-    }
+    } catch(e) { console.error('Failed to load avatar from URL:', e); }
   }
 }
 
@@ -2008,35 +1153,19 @@ function loadFromStorage() {
       const data = JSON.parse(saved);
       avatar = {...avatar, ...data};
       currentGender = avatar.gender;
-    } catch(e) {
-      console.error('Failed to load avatar from storage:', e);
-    }
+    } catch(e) { console.error('Failed to load avatar from storage:', e); }
   }
 }
 
-// Initialize everything
 window.addEventListener('DOMContentLoaded', () => {
   createParticles();
   loadFromURL();
   loadFromStorage();
-  
-  // Initialize history
   history.push(avatar);
-  
-  // Build UI
   buildPresetGrid();
   buildEditControls();
   updateAllPreviews();
-  
-  // Load AI models
   loadModels();
 });
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-  stopCamera();
-});
-</script>
-
-</body>
-</html>
+window.addEventListener('beforeunload', () => { stopCamera(); });

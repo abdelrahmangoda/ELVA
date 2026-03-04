@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Avatar Creator Pro — ELVA</title>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Model loading overlay -->
+<div id="model-overlay">
+  <div class="model-icon">🧠</div>
+  <div class="model-title">Loading AI Models</div>
+  <div class="model-sub" id="model-status">Initializing face detection...</div>
+  <div class="model-prog"><div class="model-prog-fill" id="model-prog-fill"></div></div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="badge">ELVA</div>
+    <h1>Create Your Avatar</h1>
+    <p class="subtitle">Choose a preset, scan your real face, or customize every detail — completely free & private</p>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="toolbar-btn" id="btn-undo" onclick="undo()" disabled title="Ctrl+Z">
+      <span>↶</span> Undo
+    </button>
+    <button class="toolbar-btn" id="btn-redo" onclick="redo()" disabled title="Ctrl+Shift+Z">
+      <span>↷</span> Redo
+    </button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="randomizeAvatar()" title="R">
+      <span>🎲</span> Random
+    </button>
+    <button class="toolbar-btn" onclick="resetToDefault()" title="Ctrl+R">
+      <span>↺</span> Reset
+    </button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="toggleShortcuts()">
+      <span>⌨️</span> Shortcuts
+    </button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('choose')">🎭 Presets</button>
+    <button class="tab" onclick="switchTab('scan')">
+      📷 Face Scan
+      <span class="tab-badge">AI</span>
+    </button>
+    <button class="tab" onclick="switchTab('edit')">✏️ Customize</button>
+  </div>
+
+  <div class="card">
+    <!-- CHOOSE TAB -->
+    <div id="panel-choose" class="panel panel-2col active">
+      <div>
+        <div class="section">
+          <div class="section-label">Select Gender</div>
+          <div class="gender-toggle">
+            <button class="gender-btn active" id="gbtn-male" onclick="setGender('male')">👨 Male</button>
+            <button class="gender-btn" id="gbtn-female" onclick="setGender('female')">👩 Female</button>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-label">Choose a Preset</div>
+          <div class="preset-grid" id="preset-grid"></div>
+        </div>
+      </div>
+      <div class="preview-pane">
+        <div class="preview-box" onclick="animatePreview()">
+          <svg id="preview-svg" width="180" height="180" viewBox="0 0 160 160"></svg>
+          <div class="preview-label">CLICK TO ANIMATE</div>
+        </div>
+        <div class="preview-actions">
+          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
+          <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
+            <div class="export-menu" id="export-menu">
+              <div class="export-item" onclick="exportAs('svg')">📄 Export SVG <span>.svg</span></div>
+              <div class="export-item" onclick="exportAs('png')">🖼️ Export PNG <span>.png</span></div>
+              <div class="export-item" onclick="exportAs('json')">📋 Export Data <span>.json</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="share-row">
+          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
+          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCAN TAB -->
+    <div id="panel-scan" class="panel panel-2col">
+      <div>
+        <div class="scan-wrap" id="scan-wrap">
+          <div class="quality-indicator" id="quality-indicator">
+            <div class="quality-dot"></div>
+            <div class="quality-dot"></div>
+            <div class="quality-dot"></div>
+            <div class="quality-dot"></div>
+            <div class="quality-dot"></div>
+          </div>
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+          <div class="face-oval"></div>
+          <div class="scan-line"></div>
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="scan-canvas"></canvas>
+          <canvas id="overlay-canvas"></canvas>
+          <div class="scan-msg" id="scan-msg">Position your face inside the oval</div>
+        </div>
+
+        <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+
+        <div class="scan-actions">
+          <button class="scan-btn scan-btn-primary" id="btn-scan" onclick="startScan()">
+            📷 Start Scanning
+          </button>
+          <button class="scan-btn scan-btn-secondary" id="btn-rescan" onclick="resetScan()" style="display:none">
+            🔄 Re-scan
+          </button>
+          <button class="scan-btn scan-btn-secondary" id="btn-customize" onclick="switchTab('edit')" style="display:none">
+            ✏️ Customize
+          </button>
+        </div>
+
+        <div class="privacy-chips">
+          <div class="chip"><span class="chip-icon">🔒</span> Fully Private</div>
+          <div class="chip"><span class="chip-icon">📍</span> 100% Local</div>
+          <div class="chip"><span class="chip-icon">🚫</span> Never Uploaded</div>
+          <div class="chip"><span class="chip-icon">🆓</span> Free Forever</div>
+        </div>
+
+        <div class="data-readout" id="data-readout">
+          <div class="section-label">Detected Features</div>
+          <div class="data-row"><span class="data-key">GENDER</span><span class="data-val" id="dr-gender">—</span></div>
+          <div class="data-row"><span class="data-key">AGE</span><span class="data-val" id="dr-age">—</span></div>
+          <div class="data-row"><span class="data-key">SKIN TONE</span><span class="data-val"><span class="color-dot" id="dr-skin-dot"></span><span id="dr-skin">—</span></span></div>
+          <div class="data-row"><span class="data-key">HAIR</span><span class="data-val"><span class="color-dot" id="dr-hair-dot"></span><span id="dr-hair">—</span></span></div>
+          <div class="data-row"><span class="data-key">EYE COLOR</span><span class="data-val"><span class="color-dot" id="dr-eye-dot"></span><span id="dr-eye">—</span></span></div>
+          <div class="data-row"><span class="data-key">EXPRESSION</span><span class="data-val" id="dr-expression">—</span></div>
+          <div class="data-row"><span class="data-key">CONFIDENCE</span><span class="data-val" id="dr-conf">—</span></div>
+        </div>
+      </div>
+
+      <div class="preview-pane">
+        <div class="preview-box" onclick="animatePreview()">
+          <svg id="preview-svg-scan" width="180" height="180" viewBox="0 0 160 160"></svg>
+          <div class="preview-label">PREVIEW</div>
+        </div>
+        <div class="preview-actions">
+          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
+          <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
+          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT TAB -->
+    <div id="panel-edit" class="panel panel-2col">
+      <div class="edit-scroll">
+        <div class="section">
+          <div class="section-label">Gender</div>
+          <div class="gender-toggle">
+            <button class="gender-btn active" id="ebtn-male" onclick="editGender('male')">👨 Male</button>
+            <button class="gender-btn" id="ebtn-female" onclick="editGender('female')">👩 Female</button>
+          </div>
+        </div>
+        <div class="section"><div class="section-label">Face Shape</div><div class="pills" id="edit-faceshape"></div></div>
+        <div class="section"><div class="section-label">Skin Tone</div><div class="swatches" id="edit-skin"></div></div>
+        <div class="section"><div class="section-label">Hair Style</div><div class="pills" id="edit-hairstyle"></div></div>
+        <div class="section"><div class="section-label">Hair Color</div><div class="swatches" id="edit-hair"></div></div>
+        <div class="section" id="facial-hair-section"><div class="section-label">Facial Hair</div><div class="pills" id="edit-facialhair"></div></div>
+        <div class="section"><div class="section-label">Eyebrow Style</div><div class="pills" id="edit-eyebrows"></div></div>
+        <div class="section"><div class="section-label">Eye Shape</div><div class="pills" id="edit-eyeshape"></div></div>
+        <div class="section"><div class="section-label">Eye Color</div><div class="swatches" id="edit-eye"></div></div>
+        <div class="section"><div class="section-label">Nose Style</div><div class="pills" id="edit-nose"></div></div>
+        <div class="section"><div class="section-label">Lip Style</div><div class="pills" id="edit-lipstyle"></div></div>
+        <div class="section"><div class="section-label">Lip Color</div><div class="swatches" id="edit-lip"></div></div>
+        <div class="section"><div class="section-label">Accessory</div><div class="pills" id="edit-accessory"></div></div>
+        <div class="section"><div class="section-label">Outfit</div><div class="pills" id="edit-outfit"></div></div>
+        <div class="section"><div class="section-label">Background</div><div class="swatches" id="edit-bg"></div></div>
+        <button class="reset-btn" onclick="resetToDefault()">↩ Reset All to Default</button>
+        <button class="randomize-btn" onclick="randomizeAvatar()">🎲 Randomize Avatar</button>
+      </div>
+
+      <div class="preview-pane">
+        <div class="preview-box" onclick="animatePreview()">
+          <svg id="preview-svg-edit" width="180" height="180" viewBox="0 0 160 160"></svg>
+          <div class="preview-label">CLICK TO ANIMATE</div>
+        </div>
+        <div class="preview-actions">
+          <button class="save-btn" onclick="saveAvatar()">💾 Save Avatar</button>
+          <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportMenu()">📤</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <button class="share-btn" onclick="copyAvatarLink()">🔗 Copy Link</button>
+          <button class="share-btn" onclick="shareAvatar()">📤 Share</button>
+        </div>
+        <div class="mini-presets">
+          <div class="mini-label">Quick Apply Presets</div>
+          <div class="mini-row" id="mini-presets-row"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast">✓ Saved!</div>
+
+<!-- Keyboard shortcuts hint -->
+<div class="shortcuts-hint" id="shortcuts-hint">
+  <div style="margin-bottom:8px;color:var(--cyan)">Keyboard Shortcuts</div>
+  <div class="shortcut-row"><span>Undo</span><span class="shortcut-key">Ctrl+Z</span></div>
+  <div class="shortcut-row"><span>Redo</span><span class="shortcut-key">Ctrl+Shift+Z</span></div>
+  <div class="shortcut-row"><span>Random</span><span class="shortcut-key">R</span></div>
+  <div class="shortcut-row"><span>Save</span><span class="shortcut-key">Ctrl+S</span></div>
+  <div class="shortcut-row"><span>Reset</span><span class="shortcut-key">Ctrl+R</span></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
