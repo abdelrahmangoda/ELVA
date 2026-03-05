@@ -227,20 +227,27 @@ export default function ElvaTutor() {
   const t = T[lang];
   const isRTL = lang === "ar";
 
-  // ── VOICE MANAGER ──────────────────────────
+  // ── REFS FOR LATEST STATE ──────────────────
+  const lessonRef = useRef(lesson);
+  const qIdxRef = useRef(qIdx);
+  const checkInRef = useRef(checkIn);
+  const latestCallbacks = useRef({});
+
+  useEffect(() => { lessonRef.current = lesson; }, [lesson]);
+  useEffect(() => { qIdxRef.current = qIdx; }, [qIdx]);
+  useEffect(() => { checkInRef.current = checkIn; }, [checkIn]);
+
+  // ── VOICE MANAGER (FIXED) ──────────────────
   const voice = useVoiceManager({
     lang,
     onResult: useCallback((transcript) => {
-      handleVoiceResult(transcript);
-    }, [voiceContext, lesson, qIdx, checkIn, lang]),
+      const ctx = voiceContext;
+      if (ctx === "chat") latestCallbacks.current.send?.(transcript);
+      else if (ctx === "slide") latestCallbacks.current.sendSlideChatText?.(transcript);
+      else if (ctx === "quiz") latestCallbacks.current.judgeVoiceAnswer?.(transcript, "quiz");
+      else if (ctx === "checkin") latestCallbacks.current.judgeVoiceAnswer?.(transcript, "checkin");
+    }, [voiceContext]),
   });
-
-  function handleVoiceResult(transcript) {
-    if (voiceContext === "chat") send(transcript);
-    else if (voiceContext === "slide") sendSlideChatText(transcript);
-    else if (voiceContext === "quiz") judgeVoiceAnswer(transcript, "quiz");
-    else if (voiceContext === "checkin") judgeVoiceAnswer(transcript, "checkin");
-  }
 
   // ── LIFECYCLE ──────────────────────────────
   useEffect(() => {
@@ -330,10 +337,20 @@ export default function ElvaTutor() {
       <button
         className={`elva-voice-mic-btn${isActive ? " elva-voice-mic-btn--active" : ""}`}
         style={style}
-        onPointerDown={e => { setVoiceContext(context); voice.onPointerDown(e); }}
+        onPointerDown={e => { 
+          killAllAudio();
+          setVoiceContext(context); 
+          voice.onPointerDown(e); 
+        }}
         onPointerUp={voice.onPointerUp}
         onPointerLeave={voice.onPointerUp}
-        onClick={e => { if (voice.isMobile) { setVoiceContext(context); voice.onTap(e); } }}
+        onClick={e => { 
+          if (voice.isMobile) { 
+            killAllAudio();
+            setVoiceContext(context); 
+            voice.onTap(e); 
+          } 
+        }}
         title={voice.isMobile ? "Tap to speak" : "Hold to speak"}
       >
         {isJudge ? "⏳" : isProc ? "⌛" : isActive ? "🔴" : "🎤"}
@@ -587,10 +604,11 @@ export default function ElvaTutor() {
     finally { setQuizAiChecking(false); }
   }
 
+  // ── JUDGE VOICE ANSWER (FIXED) ─────────────
   async function judgeVoiceAnswer(transcript, mode) {
     voice.setJudging();
     const isQuiz = mode === "quiz";
-    const q = isQuiz ? lesson?.quiz[qIdx] : checkIn;
+    const q = isQuiz ? lessonRef.current?.quiz[qIdxRef.current] : checkInRef.current;
     if (!q) return;
     try {
       if (q.type === "open") {
@@ -654,6 +672,11 @@ export default function ElvaTutor() {
   function md(s) {
     return (s || "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>");
   }
+
+  // ── UPDATE LATEST CALLBACKS ────────────────
+  useEffect(() => {
+    latestCallbacks.current = { send, sendSlideChatText, judgeVoiceAnswer };
+  }, [send, sendSlideChatText, judgeVoiceAnswer]);
 
   // ════════════════════════════════════════════
   // REPORT SCREEN
@@ -841,7 +864,7 @@ export default function ElvaTutor() {
   }
 
   // ════════════════════════════════════════════
-  // LESSON SCREEN
+  // LESSON SCREEN (same as before — no changes needed)
   // ════════════════════════════════════════════
   if (screen === "lesson" && lesson) {
     const sl = lesson.slides[slide];
@@ -1081,8 +1104,6 @@ export default function ElvaTutor() {
     <div className="elva-root" style={{ direction: isRTL ? "rtl" : "ltr" }}>
       <Orbs />
       <div className="elva-container">
-
-        {/* HEADER */}
         <header className="elva-header">
           <div className="elva-logo">
             <div className="elva-logo-icon">E</div>
@@ -1093,11 +1114,7 @@ export default function ElvaTutor() {
           </div>
           <div className="elva-header-right">
             {user?.avatar && (
-              <button 
-                className="elva-user-avatar-btn"
-                onClick={() => navigate('/profile')}
-                title="View Profile"
-              >
+              <button className="elva-user-avatar-btn" onClick={() => navigate('/profile')} title="View Profile">
                 <div dangerouslySetInnerHTML={{ __html: buildMiniAvatarSVG(user.avatar, 36) }} />
               </button>
             )}
@@ -1105,22 +1122,12 @@ export default function ElvaTutor() {
             <div className="elva-pill">⭐ {xp}</div>
             <div className="elva-lvl">LV{level}</div>
             <button className="elva-lang-btn" onClick={() => { 
-              killAllAudio(); 
-              setScreen("chat"); 
-              setLesson(null); 
-              setChatHistory([]); 
-              setStudentLevel(null); 
-              setLessonTopic(null); 
-              setLang(l => l === "ar" ? "en" : "ar"); 
+              killAllAudio(); setScreen("chat"); setLesson(null); setChatHistory([]); setStudentLevel(null); setLessonTopic(null); setLang(l => l === "ar" ? "en" : "ar"); 
             }}>{t.toggleLang}</button>
-            <button className={`elva-voice-picker-btn${showVoicePicker ? " elva-voice-picker-btn--active" : ""}`}
-              onClick={() => setShowVoicePicker(p => !p)}>🎙️</button>
+            <button className={`elva-voice-picker-btn${showVoicePicker ? " elva-voice-picker-btn--active" : ""}`} onClick={() => setShowVoicePicker(p => !p)}>🎙️</button>
           </div>
         </header>
-
         <div className="elva-xp-track"><div className="elva-xp-fill" style={{ width: xpProg + "%" }} /></div>
-
-        {/* VOICE PICKER */}
         {showVoicePicker && (
           <div className="elva-voice-panel">
             <div className="elva-voice-panel-title">🎙️ {lang === "ar" ? "اختار صوت إلفا" : "CHOOSE ELVA VOICE"}</div>
@@ -1129,16 +1136,8 @@ export default function ElvaTutor() {
                 const isSel = selectedVoice?.name === v.name;
                 const isPrem = ["google", "natural", "online", "neural", "enhanced", "premium", "siri", "samantha", "karen"].some(k => v.name.toLowerCase().includes(k));
                 return (
-                  <button key={i} className="elva-voice-btn"
-                    style={{ background: isSel ? "rgba(124,58,237,.35)" : "rgba(124,58,237,.07)", borderColor: isSel ? "#a78bfa" : "rgba(124,58,237,.2)", color: isSel ? "#fff" : "#c4b5fd" }}
-                    onClick={() => { 
-                      setSelectedVoice(v); 
-                      stopSpeech(); 
-                      const u = new SpeechSynthesisUtterance(lang === "ar" ? "مرحباً! أنا إلفاَ، مدرستك الذكية." : "Hello! I'm Elva, your personal AI tutor."); 
-                      u.voice = v; 
-                      u.rate = 0.9; 
-                      window.speechSynthesis.speak(u); 
-                    }}>
+                  <button key={i} className="elva-voice-btn" style={{ background: isSel ? "rgba(124,58,237,.35)" : "rgba(124,58,237,.07)", borderColor: isSel ? "#a78bfa" : "rgba(124,58,237,.2)", color: isSel ? "#fff" : "#c4b5fd" }}
+                    onClick={() => { setSelectedVoice(v); stopSpeech(); const u = new SpeechSynthesisUtterance(lang === "ar" ? "مرحباً! أنا إلفاَ، مدرستك الذكية." : "Hello! I'm Elva, your personal AI tutor."); u.voice = v; u.rate = 0.9; window.speechSynthesis.speak(u); }}>
                     {isPrem ? "⭐" : "🔈"} {v.name.replace("Microsoft ", "").replace("Google ", "").split(" ").slice(0, 3).join(" ")}
                   </button>
                 );
@@ -1147,15 +1146,9 @@ export default function ElvaTutor() {
             {selectedVoice && <div style={{ fontSize: 11, color: "rgba(52,211,153,.8)", fontWeight: 600 }}>✅ {selectedVoice.name}</div>}
           </div>
         )}
-
-        {/* SUBJECT CHIPS */}
         <div className="elva-chips">
-          {t.subjects.map(s => (
-            <button key={s.label} className="elva-chip" onClick={() => send(s.prompt)}>{s.icon} {s.label}</button>
-          ))}
+          {t.subjects.map(s => <button key={s.label} className="elva-chip" onClick={() => send(s.prompt)}>{s.icon} {s.label}</button>)}
         </div>
-
-        {/* MESSAGES */}
         <div className="elva-chat">
           {messages.map((msg, i) => {
             const isLast = i === messages.length - 1;
@@ -1165,23 +1158,13 @@ export default function ElvaTutor() {
                   {msg.role === "assistant" && <div className="elva-avatar elva-avatar--bot">E</div>}
                   <div className={msg.role === "user" ? "elva-bubble elva-bubble--user" : "elva-bubble elva-bubble--bot"}>
                     <span dangerouslySetInnerHTML={{ __html: md(msg.text) }} />
-                    {msg.type === "lesson-ready" && msg.lessonData && (
-                      <button className="elva-open-btn" onClick={() => openLesson(msg.lessonData)}>{t.openLesson}</button>
-                    )}
+                    {msg.type === "lesson-ready" && msg.lessonData && <button className="elva-open-btn" onClick={() => openLesson(msg.lessonData)}>{t.openLesson}</button>}
                   </div>
-                  {msg.role === "user" && (
-                    user?.avatar ? (
-                      <div className="elva-user-avatar-mini" dangerouslySetInnerHTML={{ __html: buildMiniAvatarSVG(user.avatar, 32) }} />
-                    ) : (
-                      <div className="elva-avatar elva-avatar--user">👤</div>
-                    )
-                  )}
+                  {msg.role === "user" && (user?.avatar ? <div className="elva-user-avatar-mini" dangerouslySetInnerHTML={{ __html: buildMiniAvatarSVG(user.avatar, 32) }} /> : <div className="elva-avatar elva-avatar--user">👤</div>)}
                 </div>
                 {msg.choices?.length > 0 && isLast && !loading && (
                   <div className="elva-choices-wrap" style={{ paddingRight: isRTL ? 0 : 48, paddingLeft: isRTL ? 48 : 0 }}>
-                    {msg.choices.map((choice, ci) => (
-                      <button key={ci} className="elva-choice-btn" onClick={() => send(choice)}>{choice}</button>
-                    ))}
+                    {msg.choices.map((choice, ci) => <button key={ci} className="elva-choice-btn" onClick={() => send(choice)}>{choice}</button>)}
                   </div>
                 )}
               </div>
@@ -1191,22 +1174,17 @@ export default function ElvaTutor() {
             <div className="elva-bot-row">
               <div className="elva-avatar elva-avatar--bot">E</div>
               <div className="elva-bubble elva-bubble--bot" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <LoadingDots />
-                <span style={{ fontSize: 12, color: "rgba(167,139,250,.7)" }}>{t.loadingSteps[loadingStep]}</span>
+                <LoadingDots /><span style={{ fontSize: 12, color: "rgba(167,139,250,.7)" }}>{t.loadingSteps[loadingStep]}</span>
               </div>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
-
-        {/* INPUT */}
         <div className="elva-input-area">
           {voice.state !== "idle" && voiceContext === "chat" && (
             <div className="elva-voice-feedback">
               <span className="elva-voice-dot elva-voice-dot--listening">●</span>
-              <span style={{ color: voice.state === "listening" ? "#f87171" : "#fbbf24", fontSize: 13, fontWeight: 700 }}>
-                {voice.state === "listening" ? t.voiceListening : t.voiceProcessing}
-              </span>
+              <span style={{ color: voice.state === "listening" ? "#f87171" : "#fbbf24", fontSize: 13, fontWeight: 700 }}>{voice.state === "listening" ? t.voiceListening : t.voiceProcessing}</span>
               {voice.transcript && <span style={{ color: "rgba(226,232,240,0.7)", fontSize: 12, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>"{voice.transcript}"</span>}
               <button onClick={() => voice.stop()} className="elva-voice-stop-btn">✕</button>
             </div>
@@ -1215,24 +1193,20 @@ export default function ElvaTutor() {
           <div className="elva-input-wrap">
             {isRTL && (
               <>
-                <button className="elva-send-btn" style={{ opacity: loading || !input.trim() ? 0.35 : 1 }}
-                  onClick={() => send()} disabled={loading || !input.trim()}>🚀</button>
+                <button className="elva-send-btn" style={{ opacity: loading || !input.trim() ? 0.35 : 1 }} onClick={() => send()} disabled={loading || !input.trim()}>🚀</button>
                 <VoiceButton context="chat" style={{ width: 46, height: 46 }} />
               </>
             )}
-            <textarea
-              className={`elva-textarea${voice.state === "listening" && voiceContext === "chat" ? " elva-textarea--voice" : ""}`}
+            <textarea className={`elva-textarea${voice.state === "listening" && voiceContext === "chat" ? " elva-textarea--voice" : ""}`}
               value={voice.state === "listening" && voiceContext === "chat" ? (voice.transcript || "") : input}
               onChange={e => { if (voiceContext !== "chat" || voice.state !== "listening") setInput(e.target.value); }}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={voice.state === "listening" && voiceContext === "chat" ? t.voiceListening : t.placeholder}
-              style={{ textAlign: isRTL ? "right" : "left", direction: isRTL ? "rtl" : "ltr" }}
-              rows={1} />
+              style={{ textAlign: isRTL ? "right" : "left", direction: isRTL ? "rtl" : "ltr" }} rows={1} />
             {!isRTL && (
               <>
                 <VoiceButton context="chat" style={{ width: 46, height: 46 }} />
-                <button className="elva-send-btn" style={{ opacity: loading || !input.trim() ? 0.35 : 1 }}
-                  onClick={() => send()} disabled={loading || !input.trim()}>🚀</button>
+                <button className="elva-send-btn" style={{ opacity: loading || !input.trim() ? 0.35 : 1 }} onClick={() => send()} disabled={loading || !input.trim()}>🚀</button>
               </>
             )}
           </div>
