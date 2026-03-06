@@ -1,3 +1,4 @@
+// src/components/AvatarCreator.jsx
 import React, { useState, useEffect, useRef } from 'react';
 
 // ══════════════════════════════════════════════════════════════
@@ -64,22 +65,33 @@ const ACCESSORIES = [
   { id: "earrings", label: "Earrings" }
 ];
 
+const FACE_SHAPES = [
+  { id: "oval", label: "Oval" },
+  { id: "round", label: "Round" },
+  { id: "square", label: "Square" },
+  { id: "heart", label: "Heart" }
+];
+
 const PRESETS = {
   male: [
-    { name: "Alex", gender: "male", skin: SKIN[0], hair: HAIR[0], hairStyle: "short", eye: EYE[2], lip: LIP[0], bg: BG[0], accessory: "none" },
-    { name: "Marcus", gender: "male", skin: SKIN[4], hair: HAIR[2], hairStyle: "fade", eye: EYE[0], lip: LIP[5], bg: BG[3], accessory: "none" },
-    { name: "Jake", gender: "male", skin: SKIN[2], hair: HAIR[10], hairStyle: "curly", eye: EYE[4], lip: LIP[1], bg: BG[4], accessory: "glasses" },
-    { name: "Tyler", gender: "male", skin: SKIN[8], hair: HAIR[0], hairStyle: "bald", eye: EYE[0], lip: LIP[5], bg: BG[5], accessory: "sunglasses" },
-    { name: "Ryan", gender: "male", skin: SKIN[1], hair: HAIR[12], hairStyle: "mohawk", eye: EYE[8], lip: LIP[2], bg: BG[2], accessory: "none" },
-    { name: "Chris", gender: "male", skin: SKIN[6], hair: HAIR[8], hairStyle: "slick", eye: EYE[6], lip: LIP[3], bg: BG[9], accessory: "none" }
+    { name: "Alex", gender: "male", skin: SKIN[0], hair: HAIR[0], hairStyle: "short", eye: EYE[2], lip: LIP[0], bg: BG[0], accessory: "none", faceShape: "oval" },
+    { name: "Marcus", gender: "male", skin: SKIN[4], hair: HAIR[2], hairStyle: "fade", eye: EYE[0], lip: LIP[5], bg: BG[3], accessory: "none", faceShape: "square" },
+    { name: "Jake", gender: "male", skin: SKIN[2], hair: HAIR[10], hairStyle: "curly", eye: EYE[4], lip: LIP[1], bg: BG[4], accessory: "glasses", faceShape: "round" },
+    { name: "Tyler", gender: "male", skin: SKIN[8], hair: HAIR[0], hairStyle: "bald", eye: EYE[0], lip: LIP[5], bg: BG[5], accessory: "sunglasses", faceShape: "oval" },
+    { name: "Ryan", gender: "male", skin: SKIN[1], hair: HAIR[12], hairStyle: "mohawk", eye: EYE[8], lip: LIP[2], bg: BG[2], accessory: "none", faceShape: "heart" },
+    { name: "Chris", gender: "male", skin: SKIN[6], hair: HAIR[8], hairStyle: "slick", eye: EYE[6], lip: LIP[3], bg: BG[9], accessory: "none", faceShape: "square" },
+    { name: "David", gender: "male", skin: SKIN[3], hair: HAIR[4], hairStyle: "spiky", eye: EYE[3], lip: LIP[0], bg: BG[1], accessory: "none", faceShape: "oval" },
+    { name: "James", gender: "male", skin: SKIN[7], hair: HAIR[1], hairStyle: "afro", eye: EYE[1], lip: LIP[4], bg: BG[7], accessory: "headband", faceShape: "round" }
   ],
   female: [
-    { name: "Emma", gender: "female", skin: SKIN[0], hair: HAIR[12], hairStyle: "long", eye: EYE[4], lip: LIP[2], bg: BG[2], accessory: "earrings" },
-    { name: "Sophia", gender: "female", skin: SKIN[2], hair: HAIR[0], hairStyle: "ponytail", eye: EYE[2], lip: LIP[0], bg: BG[8], accessory: "headband" },
-    { name: "Mia", gender: "female", skin: SKIN[4], hair: HAIR[6], hairStyle: "bun", eye: EYE[6], lip: LIP[4], bg: BG[5], accessory: "glasses" },
-    { name: "Zara", gender: "female", skin: SKIN[8], hair: HAIR[16], hairStyle: "curly", eye: EYE[0], lip: LIP[5], bg: BG[6], accessory: "none" },
-    { name: "Luna", gender: "female", skin: SKIN[1], hair: HAIR[20], hairStyle: "pixie", eye: EYE[12], lip: LIP[1], bg: BG[10], accessory: "none" },
-    { name: "Aria", gender: "female", skin: SKIN[3], hair: HAIR[10], hairStyle: "wavy", eye: EYE[3], lip: LIP[0], bg: BG[1], accessory: "sunglasses" }
+    { name: "Emma", gender: "female", skin: SKIN[0], hair: HAIR[12], hairStyle: "long", eye: EYE[4], lip: LIP[2], bg: BG[2], accessory: "earrings", faceShape: "oval" },
+    { name: "Sophia", gender: "female", skin: SKIN[2], hair: HAIR[0], hairStyle: "ponytail", eye: EYE[2], lip: LIP[0], bg: BG[8], accessory: "headband", faceShape: "heart" },
+    { name: "Mia", gender: "female", skin: SKIN[4], hair: HAIR[6], hairStyle: "bun", eye: EYE[6], lip: LIP[4], bg: BG[5], accessory: "glasses", faceShape: "round" },
+    { name: "Zara", gender: "female", skin: SKIN[8], hair: HAIR[16], hairStyle: "curly", eye: EYE[0], lip: LIP[5], bg: BG[6], accessory: "none", faceShape: "oval" },
+    { name: "Luna", gender: "female", skin: SKIN[1], hair: HAIR[20], hairStyle: "pixie", eye: EYE[12], lip: LIP[1], bg: BG[10], accessory: "none", faceShape: "square" },
+    { name: "Aria", gender: "female", skin: SKIN[3], hair: HAIR[10], hairStyle: "wavy", eye: EYE[3], lip: LIP[0], bg: BG[1], accessory: "sunglasses", faceShape: "heart" },
+    { name: "Olivia", gender: "female", skin: SKIN[5], hair: HAIR[8], hairStyle: "braids", eye: EYE[5], lip: LIP[3], bg: BG[11], accessory: "earrings", faceShape: "oval" },
+    { name: "Chloe", gender: "female", skin: SKIN[6], hair: HAIR[14], hairStyle: "bob", eye: EYE[7], lip: LIP[6], bg: BG[0], accessory: "none", faceShape: "round" }
   ]
 };
 
@@ -97,8 +109,22 @@ export function buildAvatarSVG(cfg, size = 160) {
     eye = EYE[2], 
     lip = LIP[0], 
     bg = BG[0], 
-    accessory = "none" 
+    accessory = "none",
+    faceShape = "oval"
   } = cfg || {};
+
+  const getFacePathD = () => {
+    switch (faceShape) {
+      case "round":
+        return "M80 48 C120 48 118 88 118 100 C118 125 105 135 80 138 C55 135 42 125 42 100 C42 88 40 48 80 48";
+      case "square":
+        return "M80 48 C115 48 118 75 118 95 C118 125 108 138 80 138 C52 138 42 125 42 95 C42 75 45 48 80 48";
+      case "heart":
+        return "M80 48 C120 48 120 78 118 95 C116 120 100 138 80 140 C60 138 44 120 42 95 C40 78 40 48 80 48";
+      default: // oval
+        return "M80 48 C115 52 118 85 118 100 C118 125 100 138 80 140 C60 138 42 125 42 100 C42 85 45 52 80 48";
+    }
+  };
 
   const getHairSVG = () => {
     if (hairStyle === "bald") return "";
@@ -196,7 +222,7 @@ export function buildAvatarSVG(cfg, size = 160) {
       <circle cx="80" cy="80" r="80" fill="${bg}"/>
       <ellipse cx="42" cy="90" rx="7" ry="10" fill="${skin}"/>
       <ellipse cx="118" cy="90" rx="7" ry="10" fill="${skin}"/>
-      <ellipse cx="80" cy="88" rx="36" ry="40" fill="${skin}"/>
+      <path d="${getFacePathD()}" fill="${skin}"/>
       ${getHairSVG()}
       <path d="M58 78 Q66 73 74 78" stroke="#3D2010" stroke-width="2.5" fill="none" stroke-linecap="round"/>
       <path d="M86 78 Q94 73 102 78" stroke="#3D2010" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -229,7 +255,8 @@ const DEFAULT_AVATAR = {
   eye: EYE[2],
   lip: LIP[0],
   bg: BG[0],
-  accessory: "none"
+  accessory: "none",
+  faceShape: "oval"
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -240,14 +267,16 @@ export default function AvatarCreator({
   onSave, 
   onClose, 
   isModal = true,
-  showFaceScan = true 
+  showFaceScan = true,
+  filterGender = null,
+  fullScreen = false
 }) {
   const [avatar, setAvatar] = useState(() => ({
     ...DEFAULT_AVATAR,
     ...(initialAvatar || {})
   }));
   
-  const [gender, setGender] = useState(avatar.gender || "male");
+  const [gender, setGender] = useState(filterGender || avatar.gender || "male");
   const [activeTab, setActiveTab] = useState("presets");
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState("");
@@ -255,6 +284,18 @@ export default function AvatarCreator({
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  // Effect to sync gender when filter changes
+  useEffect(() => {
+    if (filterGender) {
+      setGender(filterGender);
+      setAvatar(prev => ({
+        ...prev,
+        gender: filterGender,
+        hairStyle: filterGender === "male" ? "short" : "long"
+      }));
+    }
+  }, [filterGender]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -273,13 +314,16 @@ export default function AvatarCreator({
   // Select preset
   const selectPreset = (preset) => {
     setAvatar({ ...preset });
-    setGender(preset.gender);
+    if (!filterGender) {
+      setGender(preset.gender);
+    }
   };
   
   // Randomize avatar
   const randomize = () => {
-    const g = Math.random() > 0.5 ? "male" : "female";
+    const g = filterGender || (Math.random() > 0.5 ? "male" : "female");
     const styles = HAIR_STYLES[g];
+    const shapes = FACE_SHAPES;
     const newAvatar = {
       gender: g,
       skin: SKIN[Math.floor(Math.random() * SKIN.length)],
@@ -288,10 +332,13 @@ export default function AvatarCreator({
       eye: EYE[Math.floor(Math.random() * EYE.length)],
       lip: LIP[Math.floor(Math.random() * LIP.length)],
       bg: BG[Math.floor(Math.random() * BG.length)],
-      accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)].id
+      accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)].id,
+      faceShape: shapes[Math.floor(Math.random() * shapes.length)].id
     };
     setAvatar(newAvatar);
-    setGender(g);
+    if (!filterGender) {
+      setGender(g);
+    }
   };
   
   // Handle save
@@ -306,23 +353,19 @@ export default function AvatarCreator({
 
   // Handle gender change
   const handleGenderChange = (newGender) => {
+    if (filterGender) return; // Prevent change if gender is filtered
     setGender(newGender);
     update("gender", newGender);
     update("hairStyle", newGender === "male" ? "short" : "long");
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // FACE SCANNING
-  // ══════════════════════════════════════════════════════════════
+  // Face scanning functions (same as before)
   const loadModels = async () => {
     if (modelsLoaded) return true;
-    
-    // Check if faceapi is available
     if (typeof faceapi === 'undefined') {
       setScanStatus("Face detection not available");
       return false;
     }
-    
     setScanStatus("Loading AI models...");
     try {
       await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -340,11 +383,7 @@ export default function AvatarCreator({
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'user', 
-          width: { ideal: 640 }, 
-          height: { ideal: 480 } 
-        } 
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -372,28 +411,16 @@ export default function AvatarCreator({
   const startScan = async () => {
     setScanning(true);
     setScanStatus("Initializing...");
-    
     const loaded = await loadModels();
-    if (!loaded) { 
-      setScanning(false); 
-      return; 
-    }
-    
+    if (!loaded) { setScanning(false); return; }
     const cameraStarted = await startCamera();
-    if (!cameraStarted) { 
-      setScanning(false); 
-      return; 
-    }
-    
+    if (!cameraStarted) { setScanning(false); return; }
     setScanStatus("Position your face in the frame...");
     
-    // Wait for video to be ready then detect
     setTimeout(async () => {
       if (!videoRef.current || !scanning) return;
-      
       try {
         setScanStatus("Analyzing face...");
-        
         const detection = await faceapi
           .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
           .withFaceLandmarks()
@@ -401,9 +428,7 @@ export default function AvatarCreator({
         
         if (detection) {
           const detectedGender = detection.gender;
-          const g = detectedGender === "male" ? "male" : "female";
-          
-          // Update avatar based on detection
+          const g = filterGender || (detectedGender === "male" ? "male" : "female");
           const newAvatar = {
             ...avatar,
             gender: g,
@@ -412,16 +437,12 @@ export default function AvatarCreator({
             hair: HAIR[Math.floor(Math.random() * 6)],
             eye: EYE[Math.floor(Math.random() * 6)]
           };
-          
           setAvatar(newAvatar);
-          setGender(g);
-          
+          if (!filterGender) {
+            setGender(g);
+          }
           setScanStatus(`✅ Detected: ${g}, ~${Math.round(detection.age)} years old`);
-          
-          // Switch to customize tab after successful scan
-          setTimeout(() => {
-            setActiveTab("customize");
-          }, 1500);
+          setTimeout(() => { setActiveTab("customize"); }, 1500);
         } else {
           setScanStatus("No face detected. Try again.");
         }
@@ -429,19 +450,23 @@ export default function AvatarCreator({
         console.error("Face detection error:", e);
         setScanStatus("Scan failed. Please try again.");
       }
-      
       stopCamera();
     }, 3000);
   };
+
+  // Get filtered presets based on gender
+  const filteredPresets = filterGender 
+    ? PRESETS[filterGender] 
+    : PRESETS[gender];
 
   // ══════════════════════════════════════════════════════════════
   // RENDER CONTENT
   // ══════════════════════════════════════════════════════════════
   const renderContent = () => (
-    <div className="avatar-creator-inner">
+    <div className={`avatar-creator-inner ${fullScreen ? 'avatar-creator-inner--fullscreen' : ''}`}>
       {/* Header */}
       <div className="avatar-creator-header">
-        <h3>🎨 Create Your Avatar</h3>
+        <h3>🎨 {fullScreen ? 'Choose Your Avatar' : 'Create Your Avatar'}</h3>
         {isModal && onClose && (
           <button className="avatar-close-btn" onClick={onClose}>✕</button>
         )}
@@ -472,57 +497,60 @@ export default function AvatarCreator({
       </div>
       
       {/* Content */}
-      <div className="avatar-creator-content">
+      <div className={`avatar-creator-content ${fullScreen ? 'avatar-creator-content--fullscreen' : ''}`}>
         {/* Preview Section */}
-        <div className="avatar-preview-section">
+        <div className={`avatar-preview-section ${fullScreen ? 'avatar-preview-section--fullscreen' : ''}`}>
           <div 
             className="avatar-preview-box" 
-            dangerouslySetInnerHTML={{ __html: buildAvatarSVG(avatar, 200) }} 
+            dangerouslySetInnerHTML={{ __html: buildAvatarSVG(avatar, fullScreen ? 220 : 200) }} 
           />
           <div className="avatar-actions">
             <button className="avatar-action-btn" onClick={randomize}>
               🎲 Random
             </button>
             <button className="avatar-action-btn save" onClick={handleSave}>
-              💾 Save
+              💾 {fullScreen ? 'Use This Avatar' : 'Save'}
             </button>
           </div>
         </div>
         
         {/* Controls Section */}
-        <div className="avatar-controls-section">
+        <div className={`avatar-controls-section ${fullScreen ? 'avatar-controls-section--fullscreen' : ''}`}>
           {/* PRESETS TAB */}
           {activeTab === 'presets' && (
             <>
-              <div className="avatar-section">
-                <label>Gender</label>
-                <div className="avatar-gender-btns">
-                  <button 
-                    className={`avatar-gender-btn ${gender === "male" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("male")}
-                  >
-                    👨 Male
-                  </button>
-                  <button 
-                    className={`avatar-gender-btn ${gender === "female" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("female")}
-                  >
-                    👩 Female
-                  </button>
+              {/* Only show gender selection if not filtered */}
+              {!filterGender && (
+                <div className="avatar-section">
+                  <label>Gender</label>
+                  <div className="avatar-gender-btns">
+                    <button 
+                      className={`avatar-gender-btn ${gender === "male" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("male")}
+                    >
+                      👨 Male
+                    </button>
+                    <button 
+                      className={`avatar-gender-btn ${gender === "female" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("female")}
+                    >
+                      👩 Female
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               
               <div className="avatar-section">
-                <label>Choose a Preset</label>
-                <div className="avatar-presets-grid">
-                  {PRESETS[gender].map((preset, i) => (
+                <label>Choose a Preset {filterGender && `(${filterGender === 'male' ? 'Male' : 'Female'} Avatars)`}</label>
+                <div className={`avatar-presets-grid ${fullScreen ? 'avatar-presets-grid--large' : ''}`}>
+                  {filteredPresets.map((preset, i) => (
                     <button 
                       key={i} 
-                      className="avatar-preset-card"
+                      className={`avatar-preset-card ${avatar.skin === preset.skin && avatar.hairStyle === preset.hairStyle ? 'selected' : ''}`}
                       onClick={() => selectPreset(preset)}
                       title={preset.name}
                     >
-                      <div dangerouslySetInnerHTML={{ __html: buildAvatarSVG(preset, 70) }} />
+                      <div dangerouslySetInnerHTML={{ __html: buildAvatarSVG(preset, fullScreen ? 80 : 70) }} />
                       <span className="preset-name">{preset.name}</span>
                     </button>
                   ))}
@@ -534,21 +562,38 @@ export default function AvatarCreator({
           {/* CUSTOMIZE TAB */}
           {activeTab === 'customize' && (
             <>
+              {!filterGender && (
+                <div className="avatar-section">
+                  <label>Gender</label>
+                  <div className="avatar-gender-btns">
+                    <button 
+                      className={`avatar-gender-btn ${gender === "male" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("male")}
+                    >
+                      👨 Male
+                    </button>
+                    <button 
+                      className={`avatar-gender-btn ${gender === "female" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("female")}
+                    >
+                      👩 Female
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="avatar-section">
-                <label>Gender</label>
-                <div className="avatar-gender-btns">
-                  <button 
-                    className={`avatar-gender-btn ${gender === "male" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("male")}
-                  >
-                    👨 Male
-                  </button>
-                  <button 
-                    className={`avatar-gender-btn ${gender === "female" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("female")}
-                  >
-                    👩 Female
-                  </button>
+                <label>Face Shape</label>
+                <div className="avatar-pills">
+                  {FACE_SHAPES.map((shape) => (
+                    <button
+                      key={shape.id}
+                      className={`avatar-pill ${avatar.faceShape === shape.id ? "selected" : ""}`}
+                      onClick={() => update("faceShape", shape.id)}
+                    >
+                      {shape.label}
+                    </button>
+                  ))}
                 </div>
               </div>
               
@@ -659,13 +704,7 @@ export default function AvatarCreator({
             <div className="avatar-scan-section">
               <div className="scan-preview">
                 {scanning ? (
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    muted 
-                    playsInline 
-                    className="scan-video" 
-                  />
+                  <video ref={videoRef} autoPlay muted playsInline className="scan-video" />
                 ) : (
                   <div className="scan-placeholder">
                     <span>📷</span>
@@ -677,19 +716,13 @@ export default function AvatarCreator({
                 </div>
               </div>
               
-              {scanStatus && (
-                <div className="scan-status">{scanStatus}</div>
-              )}
+              {scanStatus && <div className="scan-status">{scanStatus}</div>}
               
               <div className="scan-actions">
                 {scanning ? (
-                  <button className="scan-btn cancel" onClick={stopCamera}>
-                    ✕ Cancel
-                  </button>
+                  <button className="scan-btn cancel" onClick={stopCamera}>✕ Cancel</button>
                 ) : (
-                  <button className="scan-btn start" onClick={startScan}>
-                    📷 Start Face Scan
-                  </button>
+                  <button className="scan-btn start" onClick={startScan}>📷 Start Face Scan</button>
                 )}
               </div>
               
@@ -706,6 +739,14 @@ export default function AvatarCreator({
   // ══════════════════════════════════════════════════════════════
   // RENDER
   // ══════════════════════════════════════════════════════════════
+  if (fullScreen) {
+    return (
+      <div className="avatar-creator-fullscreen">
+        {renderContent()}
+      </div>
+    );
+  }
+
   if (isModal) {
     return (
       <div className="avatar-creator-modal">

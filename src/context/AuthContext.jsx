@@ -1,3 +1,4 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
@@ -21,10 +22,16 @@ export function AuthProvider({ children }) {
       ...userData,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
+      // Initial scores start at 0
       xp: 0,
       level: 1,
       streak: 0,
       lessonsCompleted: 0,
+      quizzesCompleted: 0,
+      totalStudyTime: 0,
+      achievements: [],
+      recentActivity: [],
+      subjectsProgress: {},
     };
     setUser(newUser);
     localStorage.setItem('elva_user', JSON.stringify(newUser));
@@ -65,6 +72,41 @@ export function AuthProvider({ children }) {
     return updateUser({ xp: newXP, level: newLevel });
   };
 
+  const addActivity = (activity) => {
+    const activities = user?.recentActivity || [];
+    const newActivities = [
+      { ...activity, timestamp: Date.now() },
+      ...activities.slice(0, 19) // Keep last 20
+    ];
+    return updateUser({ recentActivity: newActivities });
+  };
+
+  const incrementLessons = () => {
+    return updateUser({ lessonsCompleted: (user?.lessonsCompleted || 0) + 1 });
+  };
+
+  const incrementQuizzes = () => {
+    return updateUser({ quizzesCompleted: (user?.quizzesCompleted || 0) + 1 });
+  };
+
+  const updateStreak = () => {
+    const lastActive = user?.lastActiveDate;
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    
+    let newStreak = user?.streak || 0;
+    
+    if (lastActive === today) {
+      // Already active today, no change
+    } else if (lastActive === yesterday) {
+      newStreak += 1;
+    } else {
+      newStreak = 1; // Reset streak
+    }
+    
+    return updateUser({ streak: newStreak, lastActiveDate: today });
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -83,6 +125,10 @@ export function AuthProvider({ children }) {
       updateUser,
       updateAvatar,
       addXP,
+      addActivity,
+      incrementLessons,
+      incrementQuizzes,
+      updateStreak,
       isAuthenticated: !!user,
     }}>
       {children}

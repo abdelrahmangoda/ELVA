@@ -1,10 +1,13 @@
+// src/components/Header.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { buildMiniAvatarSVG } from './AvatarCreator';
 
 export default function Header() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,6 +45,15 @@ export default function Header() {
         </nav>
 
         <div className="header-actions">
+          {/* Theme Toggle */}
+          <button 
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
           {isAuthenticated ? (
             <>
               <div className="user-stats">
@@ -76,7 +88,7 @@ export default function Header() {
                       className="dropdown-item"
                       onClick={() => setMenuOpen(false)}
                     >
-                      👤 Profile
+                      📊 Dashboard
                     </Link>
                     <Link 
                       to="/learn" 
@@ -122,9 +134,12 @@ export default function Header() {
           )}
           <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
           <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it Works</a>
+          <button className="mobile-theme-toggle" onClick={toggleTheme}>
+            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
           {isAuthenticated ? (
             <>
-              <Link to="/profile" onClick={() => setMenuOpen(false)}>👤 Profile</Link>
+              <Link to="/profile" onClick={() => setMenuOpen(false)}>📊 Dashboard</Link>
               <button onClick={handleLogout} className="mobile-logout">🚪 Logout</button>
             </>
           ) : (

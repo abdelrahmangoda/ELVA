@@ -1,20 +1,48 @@
+// src/pages/AuthPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AvatarCreator from '../components/AvatarCreator';
 
-const EDUCATION_YEARS = [
-  "Elementary School",
-  "Middle School",
-  "High School - Year 1",
-  "High School - Year 2",
-  "High School - Year 3",
-  "University - Year 1",
-  "University - Year 2",
-  "University - Year 3",
-  "University - Year 4",
-  "Graduate School",
-  "Professional / Self-Learning"
+// Education level configurations
+const EDUCATION_CONFIG = {
+  "Elementary School": {
+    hasYears: false,
+    hasTerms: false,
+    years: [],
+  },
+  "Middle School": {
+    hasYears: true,
+    hasTerms: true,
+    years: ["Year 1", "Year 2", "Year 3"],
+  },
+  "Secondary School": {
+    hasYears: true,
+    hasTerms: true,
+    years: ["Year 1", "Year 2", "Year 3"],
+  },
+  "University": {
+    hasYears: true,
+    hasTerms: true,
+    years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+  },
+  "Graduate School": {
+    hasYears: true,
+    hasTerms: true,
+    years: ["Year 1", "Year 2", "Year 3"],
+  },
+  "Professional / Self-Learning": {
+    hasYears: false,
+    hasTerms: false,
+    years: [],
+  },
+};
+
+const EDUCATION_LEVELS = Object.keys(EDUCATION_CONFIG);
+
+const TERMS = [
+  { id: "first", label: "First Term / Semester" },
+  { id: "second", label: "Second Term / Semester" },
 ];
 
 export default function AuthPage() {
@@ -34,6 +62,8 @@ export default function AuthPage() {
     password: '',
     age: '',
     education: '',
+    educationYear: '',
+    educationTerm: '',
     gender: 'male',
     avatar: null
   });
@@ -43,6 +73,25 @@ export default function AuthPage() {
     setStep(1);
     setError('');
   }, [searchParams]);
+
+  // Reset year and term when education changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      educationYear: '',
+      educationTerm: ''
+    }));
+  }, [formData.education]);
+
+  // Reset term when year changes
+  useEffect(() => {
+    if (formData.educationYear) {
+      setFormData(prev => ({
+        ...prev,
+        educationTerm: ''
+      }));
+    }
+  }, [formData.educationYear]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -102,6 +151,17 @@ export default function AuthPage() {
       return;
     }
     
+    const config = EDUCATION_CONFIG[formData.education];
+    
+    if (config?.hasYears && !formData.educationYear) {
+      setError('Please select your year/level');
+      return;
+    }
+    if (config?.hasTerms && formData.educationYear && !formData.educationTerm) {
+      setError('Please select your term/semester');
+      return;
+    }
+    
     setError('');
     setStep(3);
   };
@@ -121,6 +181,8 @@ export default function AuthPage() {
       password: formData.password,
       age: parseInt(formData.age),
       education: formData.education,
+      educationYear: formData.educationYear,
+      educationTerm: formData.educationTerm,
       gender: formData.gender,
       avatar: formData.avatar
     });
@@ -134,9 +196,11 @@ export default function AuthPage() {
     setLoading(false);
   };
 
+  const currentEducationConfig = EDUCATION_CONFIG[formData.education];
+
   return (
     <div className="auth-page">
-      <div className="auth-container">
+      <div className={`auth-container ${step === 3 ? 'auth-container--avatar' : ''}`}>
         <div className="auth-header">
           <div className="auth-logo">
             <div className="logo-icon">E</div>
@@ -161,9 +225,9 @@ export default function AuthPage() {
               {step < 4 && (
                 <div className="signup-progress">
                   <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>1</div>
-                  <div className="progress-line"></div>
+                  <div className={`progress-line ${step >= 2 ? 'active' : ''}`}></div>
                   <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>2</div>
-                  <div className="progress-line"></div>
+                  <div className={`progress-line ${step >= 3 ? 'active' : ''}`}></div>
                   <div className={`progress-step ${step >= 3 ? 'active' : ''}`}>3</div>
                 </div>
               )}
@@ -277,7 +341,7 @@ export default function AuthPage() {
               </form>
             )}
 
-            {/* Step 2: Personal Info */}
+            {/* Step 2: Personal Info with Dynamic Fields */}
             {step === 2 && (
               <form onSubmit={handleSignupStep2} className="auth-form">
                 <div className="form-row">
@@ -324,11 +388,51 @@ export default function AuthPage() {
                     required
                   >
                     <option value="">Select your level...</option>
-                    {EDUCATION_YEARS.map((level, i) => (
+                    {EDUCATION_LEVELS.map((level, i) => (
                       <option key={i} value={level}>{level}</option>
                     ))}
                   </select>
                 </div>
+
+                {/* Dynamic Year Selection */}
+                {currentEducationConfig?.hasYears && (
+                  <div className="form-group animated-field">
+                    <label>
+                      {formData.education === 'University' ? 'University Year' : 'Academic Year'}
+                    </label>
+                    <div className="year-select-grid">
+                      {currentEducationConfig.years.map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          className={`year-option ${formData.educationYear === year ? 'active' : ''}`}
+                          onClick={() => setFormData(p => ({ ...p, educationYear: year }))}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dynamic Term Selection - Only shows after year is selected */}
+                {currentEducationConfig?.hasTerms && formData.educationYear && (
+                  <div className="form-group animated-field">
+                    <label>Term / Semester</label>
+                    <div className="term-select-grid">
+                      {TERMS.map((term) => (
+                        <button
+                          key={term.id}
+                          type="button"
+                          className={`term-option ${formData.educationTerm === term.id ? 'active' : ''}`}
+                          onClick={() => setFormData(p => ({ ...p, educationTerm: term.id }))}
+                        >
+                          {term.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="form-buttons">
                   <button type="button" className="btn-secondary" onClick={() => setStep(1)}>
@@ -341,17 +445,19 @@ export default function AuthPage() {
               </form>
             )}
 
-            {/* Step 3: Avatar Creation */}
+            {/* Step 3: Avatar Creation - Full Screen */}
             {step === 3 && (
-              <div className="avatar-step">
+              <div className="avatar-step-fullscreen">
                 <AvatarCreator
                   initialAvatar={formData.avatar || { gender: formData.gender }}
                   onSave={handleAvatarSave}
                   isModal={false}
                   showFaceScan={true}
+                  filterGender={formData.gender}
+                  fullScreen={true}
                 />
                 
-                <div className="form-buttons">
+                <div className="avatar-step-actions">
                   <button className="btn-secondary" onClick={() => setStep(2)}>
                     ← Back
                   </button>
@@ -368,6 +474,24 @@ export default function AuthPage() {
                 <div className="complete-icon">🎉</div>
                 <h2>Welcome, {formData.firstName}!</h2>
                 <p>Your account is ready. Let's start learning!</p>
+                
+                <div className="complete-stats">
+                  <div className="complete-stat">
+                    <span className="stat-icon">⭐</span>
+                    <span className="stat-value">0 XP</span>
+                    <span className="stat-label">Starting Score</span>
+                  </div>
+                  <div className="complete-stat">
+                    <span className="stat-icon">🔥</span>
+                    <span className="stat-value">0</span>
+                    <span className="stat-label">Day Streak</span>
+                  </div>
+                  <div className="complete-stat">
+                    <span className="stat-icon">📚</span>
+                    <span className="stat-value">0</span>
+                    <span className="stat-label">Lessons</span>
+                  </div>
+                </div>
                 
                 <button 
                   className="btn-primary full large"
