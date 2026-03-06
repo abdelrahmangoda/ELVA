@@ -9,7 +9,7 @@ const EDUCATION_CONFIG = {
   "Elementary School": {
     hasYears: false,
     hasTerms: false,
-    years: [],
+    years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"],
   },
   "Middle School": {
     hasYears: true,
@@ -25,11 +25,6 @@ const EDUCATION_CONFIG = {
     hasYears: true,
     hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
-  },
-  "Graduate School": {
-    hasYears: true,
-    hasTerms: true,
-    years: ["Year 1", "Year 2", "Year 3"],
   },
   "Professional / Self-Learning": {
     hasYears: false,
