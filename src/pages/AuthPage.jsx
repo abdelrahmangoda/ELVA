@@ -129,6 +129,10 @@ export default function AuthPage() {
       setError('Password must be at least 6 characters');
       return;
     }
+    if (formData.password !== (formData.confirmPassword || '')) {
+      setError('Passwords do not match');
+      return;
+    }
     
     setError('');
     setStep(2);
@@ -272,71 +276,83 @@ export default function AuthPage() {
         ) : (
           <>
             {/* Step 1: Basic Info */}
-            {step === 1 && (
-              <form onSubmit={handleSignupStep1} className="auth-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
+                  {step === 1 && (
+                    <form onSubmit={handleSignupStep1} className="auth-form">
+                    <div className="form-row">
+                      <div className="form-group">
+                      <label>First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        placeholder="John"
+                        required
+                      />
+                      </div>
+                      <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        placeholder="Doe"
+                        required
+                      />
+                      </div>
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="John"
+                      placeholder="your@email.com"
                       required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Password</label>
+                      <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Doe"
+                      placeholder="At least 6 characters"
                       required
-                    />
-                  </div>
-                </div>
-                
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="At least 6 characters"
-                    required
-                  />
-                </div>
-                
-                <button type="submit" className="btn-primary full">
-                  Continue →
-                </button>
-                
-                <p className="auth-switch">
-                  Already have an account?{' '}
-                  <button type="button" onClick={() => navigate('/auth?mode=login')}>
-                    Login
-                  </button>
-                </p>
-              </form>
-            )}
+                      />
+                    </div>
 
-            {/* Step 2: Personal Info with Dynamic Fields */}
+                    <div className="form-group">
+                      <label>Confirm Password</label>
+                      <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword || ''}
+                      onChange={handleInputChange}
+                      placeholder="Re-enter your password"
+                      required
+                      />
+                    </div>
+                    
+                    <button type="submit" className="btn-primary full">
+                      Continue →
+                    </button>
+                    
+                    <p className="auth-switch">
+                      Already have an account?{' '}
+                      <button type="button" onClick={() => navigate('/auth?mode=login')}>
+                      Login
+                      </button>
+                    </p>
+                    </form>
+                  )}
+
+                  {/* Step 2: Personal Info with Dynamic Fields */}
             {step === 2 && (
               <form onSubmit={handleSignupStep2} className="auth-form">
                 <div className="form-row">
