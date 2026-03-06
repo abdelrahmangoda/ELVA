@@ -10,26 +10,32 @@ const EDUCATION_CONFIG = {
     hasYears: true,
     hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"],
+    hasSchoolName: true,
   },
   "Middle School": {
     hasYears: true,
     hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3"],
+    hasSchoolName: true,
   },
   "Secondary School": {
     hasYears: true,
     hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3"],
+    hasSchoolName: true,
   },
   "University": {
     hasYears: true,
     hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+    hasSchoolName: true,
+    hasFaculty: true,
   },
   "Professional / Self-Learning": {
     hasYears: false,
     hasTerms: false,
     years: [],
+    hasSchoolName: false,
   },
 };
 
@@ -59,6 +65,8 @@ export default function AuthPage() {
     education: '',
     educationYear: '',
     educationTerm: '',
+    schoolName: '',
+    faculty: '',
     gender: 'male',
     avatar: null
   });
@@ -74,7 +82,9 @@ export default function AuthPage() {
     setFormData(prev => ({
       ...prev,
       educationYear: '',
-      educationTerm: ''
+      educationTerm: '',
+      schoolName: '',
+      faculty: ''
     }));
   }, [formData.education]);
 
@@ -160,6 +170,14 @@ export default function AuthPage() {
       setError('Please select your term/semester');
       return;
     }
+    if (config?.hasSchoolName && !formData.schoolName.trim()) {
+      setError('Please enter your school/university name');
+      return;
+    }
+    if (config?.hasFaculty && !formData.faculty.trim()) {
+      setError('Please enter your faculty');
+      return;
+    }
     
     setError('');
     setStep(3);
@@ -182,6 +200,8 @@ export default function AuthPage() {
       education: formData.education,
       educationYear: formData.educationYear,
       educationTerm: formData.educationTerm,
+      schoolName: formData.schoolName,
+      faculty: formData.faculty,
       gender: formData.gender,
       avatar: formData.avatar
     });
@@ -442,6 +462,36 @@ export default function AuthPage() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* School Name Input */}
+                {currentEducationConfig?.hasSchoolName && (
+                  <div className="form-group animated-field">
+                    <label>School / University Name</label>
+                    <input
+                      type="text"
+                      name="schoolName"
+                      value={formData.schoolName}
+                      onChange={handleInputChange}
+                      placeholder="Enter your school or university name"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Faculty Input */}
+                {currentEducationConfig?.hasFaculty && (
+                  <div className="form-group animated-field">
+                    <label>Faculty</label>
+                    <input
+                      type="text"
+                      name="faculty"
+                      value={formData.faculty}
+                      onChange={handleInputChange}
+                      placeholder="Enter your faculty"
+                      required
+                    />
                   </div>
                 )}
                 

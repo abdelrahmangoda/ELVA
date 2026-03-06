@@ -61,6 +61,12 @@ export default function Dashboard() {
             <p className="welcome-greeting">{getGreeting()},</p>
             <h2 className="welcome-name">{user.firstName}! 👋</h2>
             <p className="welcome-level">Level {user.level || 1} Learner</p>
+            <p className="welcome-education">
+              {user.education}
+              {user.educationYear && ` - ${user.educationYear}`}
+              {user.schoolName && ` at ${user.schoolName}`}
+              {user.faculty && `, ${user.faculty}`}
+            </p>
           </div>
         </div>
         <div className="welcome-right">

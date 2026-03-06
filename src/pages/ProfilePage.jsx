@@ -191,6 +191,12 @@ export default function ProfilePage() {
                       {user?.educationYear && ` - ${user.educationYear}`}
                       {user?.educationTerm && ` (${user.educationTerm === 'first' ? '1st' : '2nd'} Term)`}
                     </p>
+                    {user?.schoolName && (
+                      <p><strong>School/University:</strong> {user.schoolName}</p>
+                    )}
+                    {user?.faculty && (
+                      <p><strong>Faculty:</strong> {user.faculty}</p>
+                    )}
                   </div>
                   
                   {editing && (
