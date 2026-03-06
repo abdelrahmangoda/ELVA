@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ELVA TUTOR STYLES
+   ELVA TUTOR STYLES - WITH THEME SUPPORT
    src/tutor/elvaTutor.css
 ═══════════════════════════════════════════════════════════════ */
 
@@ -22,8 +22,8 @@
 }
 
 @keyframes glow { 
-  0%, 100% { box-shadow: 0 0 8px #7c3aed; } 
-  50% { box-shadow: 0 0 24px #a855f7; } 
+  0%, 100% { box-shadow: 0 0 8px var(--accent-primary); } 
+  50% { box-shadow: 0 0 24px var(--accent-intro); } 
 }
 
 @keyframes in { 
@@ -35,6 +35,7 @@
    SLIDE TYPE COLOR VARIABLES
 ───────────────────────────────────────────── */
 :root {
+  /* Dark theme slide colors */
   --intro-bg: rgba(124, 58, 237, 0.12);
   --intro-border: rgba(124, 58, 237, 0.45);
   --intro-accent: #a78bfa;
@@ -54,6 +55,29 @@
   --summary-bg: rgba(245, 158, 11, 0.10);
   --summary-border: rgba(245, 158, 11, 0.45);
   --summary-accent: #fbbf24;
+}
+
+[data-theme="light"] {
+  /* Light theme slide colors */
+  --intro-bg: rgba(124, 58, 237, 0.06);
+  --intro-border: rgba(124, 58, 237, 0.25);
+  --intro-accent: #7c3aed;
+
+  --concept-bg: rgba(59, 130, 246, 0.06);
+  --concept-border: rgba(59, 130, 246, 0.25);
+  --concept-accent: #3b82f6;
+
+  --example-bg: rgba(16, 185, 129, 0.06);
+  --example-border: rgba(16, 185, 129, 0.25);
+  --example-accent: #10b981;
+
+  --definition-bg: rgba(236, 72, 153, 0.06);
+  --definition-border: rgba(236, 72, 153, 0.25);
+  --definition-accent: #ec4899;
+
+  --summary-bg: rgba(245, 158, 11, 0.06);
+  --summary-border: rgba(245, 158, 11, 0.25);
+  --summary-accent: #f59e0b;
 }
 
 /* ─────────────────────────────────────────────
@@ -84,11 +108,83 @@
 .slide-example-border--summary { border-left-color: var(--summary-accent); }
 
 /* ─────────────────────────────────────────────
+   THEME TOGGLE BUTTON
+───────────────────────────────────────────── */
+.elva-theme-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-track {
+  width: 56px;
+  height: 28px;
+  border-radius: 14px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  transition: background-color 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-track.light {
+  background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
+}
+
+.theme-toggle-track.dark {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.theme-toggle-icon {
+  font-size: 14px;
+  z-index: 1;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  top: 3px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-track.light .theme-toggle-thumb {
+  transform: translateX(0);
+  left: 3px;
+}
+
+.theme-toggle-track.dark .theme-toggle-thumb {
+  transform: translateX(28px);
+  left: 3px;
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+}
+
+.elva-theme-toggle:hover .theme-toggle-thumb {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.elva-theme-toggle:active .theme-toggle-thumb {
+  transform: scale(0.95) translateX(var(--thumb-x, 0));
+}
+
+/* ─────────────────────────────────────────────
    LAYOUT — ROOT & CONTAINER
 ───────────────────────────────────────────── */
 .elva-root {
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #070711;
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
   min-height: calc(100vh - 160px);
   display: flex;
   align-items: center;
@@ -115,12 +211,12 @@
   display: flex;
   flex-direction: column;
   height: 85vh;
-  background: rgba(13, 13, 26, .92);
+  background: var(--bg-card);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(139, 92, 246, .18);
-  border-radius: 24px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 0 100px rgba(124, 58, 237, .07);
+  box-shadow: var(--shadow-lg);
   z-index: 1;
 }
 
@@ -133,7 +229,7 @@
   left: -5%;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(124, 58, 237, .13) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
   border-radius: 50%;
   animation: f1 8s ease-in-out infinite;
   pointer-events: none;
@@ -159,8 +255,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(139, 92, 246, .12);
-  background: rgba(8, 8, 20, .7);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-elevated);
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -174,12 +270,12 @@
 .elva-logo-icon {
   width: 38px;
   height: 38px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  border-radius: var(--radius-md);
+  background: var(--accent-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 17px;
   color: #fff;
@@ -188,16 +284,16 @@
 }
 
 .elva-logo-name {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 17px;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: 1px;
 }
 
 .elva-logo-sub {
   font-size: 10px;
-  color: rgba(167, 139, 250, .6);
+  color: var(--text-muted);
 }
 
 .elva-header-right {
@@ -208,46 +304,56 @@
 }
 
 .elva-pill {
-  background: rgba(124, 58, 237, .1);
-  border: 1px solid rgba(124, 58, 237, .2);
-  color: #c4b5fd;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--accent-primary);
   font-size: 11px;
   padding: 3px 8px;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
 }
 
 .elva-lvl {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--accent-gradient);
   color: #fff;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 11px;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
 }
 
 .elva-lang-btn {
-  background: rgba(16, 185, 129, .12);
+  background: var(--success-bg);
   border: 1px solid rgba(16, 185, 129, .3);
-  color: #34d399;
+  color: var(--status-success);
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-lang-btn:hover {
+  background: rgba(16, 185, 129, .2);
 }
 
 .elva-voice-picker-btn {
-  background: rgba(251, 191, 36, .1);
+  background: var(--warning-bg);
   border: 1px solid rgba(251, 191, 36, .35);
-  color: #fbbf24;
+  color: var(--status-warning);
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-voice-picker-btn:hover {
+  background: rgba(251, 191, 36, .2);
 }
 
 .elva-voice-picker-btn--active {
@@ -257,11 +363,11 @@
 .elva-user-avatar-btn {
   width: 38px;
   height: 38px;
-  border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  background: rgba(124, 58, 237, 0.1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--accent-light);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   overflow: hidden;
   flex-shrink: 0;
   padding: 0;
@@ -271,8 +377,9 @@
 }
 
 .elva-user-avatar-btn:hover {
-  border-color: #7c3aed;
+  border-color: var(--accent-primary);
   transform: scale(1.05);
+  box-shadow: var(--shadow-glow);
 }
 
 .elva-user-avatar-mini {
@@ -288,15 +395,15 @@
 ───────────────────────────────────────────── */
 .elva-xp-track {
   height: 3px;
-  background: rgba(139, 92, 246, .08);
+  background: var(--bg-elevated);
   flex-shrink: 0;
 }
 
 .elva-xp-fill {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #a855f7, #3b82f6);
+  background: var(--accent-gradient);
   transition: width .6s ease;
-  box-shadow: 0 0 8px rgba(124, 58, 237, .6);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* ─────────────────────────────────────────────
@@ -304,8 +411,8 @@
 ───────────────────────────────────────────── */
 .elva-voice-panel {
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(139, 92, 246, .12);
-  background: rgba(8, 8, 20, .85);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-elevated);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -316,8 +423,8 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 2px;
-  color: #fbbf24;
-  font-family: 'Syne', sans-serif;
+  color: var(--status-warning);
+  font-family: var(--font-display);
 }
 
 .elva-voice-list {
@@ -334,8 +441,13 @@
   font-size: 11px;
   font-weight: 600;
   padding: 5px 10px;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-voice-btn:hover {
+  transform: translateY(-2px);
 }
 
 /* ─────────────────────────────────────────────
@@ -347,7 +459,7 @@
   padding: 8px 14px;
   overflow-x: auto;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, .03);
+  border-bottom: 1px solid var(--border-light);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -355,21 +467,22 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(124, 58, 237, .07);
-  border: 1px solid rgba(124, 58, 237, .18);
-  color: #a78bfa;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--accent-primary);
   font-size: 12px;
   font-weight: 600;
   padding: 5px 12px;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   white-space: nowrap;
   transition: transform .2s;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   cursor: pointer;
 }
 
 .elva-chip:hover {
   transform: translateY(-3px);
+  background: var(--bg-hover);
 }
 
 /* ─────────────────────────────────────────────
@@ -412,7 +525,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 14px;
   color: #fff;
@@ -420,17 +533,18 @@
 }
 
 .elva-avatar--bot {
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
 }
 
 .elva-avatar--user {
-  background: rgba(59, 130, 246, .15);
-  border: 1px solid rgba(59, 130, 246, .25);
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--accent-primary);
   font-size: 14px;
 }
 
 .elva-bubble {
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 11px 14px;
   font-size: clamp(13px, 3.5vw, 14px);
   line-height: 1.75;
@@ -438,18 +552,18 @@
 
 .elva-bubble--bot {
   max-width: 82%;
-  background: rgba(124, 58, 237, .07);
-  border: 1px solid rgba(124, 58, 237, .14);
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
   border-radius: 4px 16px 16px 16px;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .elva-bubble--user {
   max-width: 78%;
-  background: linear-gradient(135deg, rgba(124, 58, 237, .28), rgba(59, 130, 246, .18));
-  border: 1px solid rgba(124, 58, 237, .28);
+  background: var(--accent-gradient);
+  border: 1px solid transparent;
   border-radius: 16px 4px 16px 16px;
-  color: #f1f5f9;
+  color: #fff;
   line-height: 1.65;
 }
 
@@ -457,33 +571,40 @@
   display: block;
   margin-top: 12px;
   width: 100%;
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   color: #fff;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 14px;
   padding: 10px;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-open-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .elva-choice-btn {
-  background: rgba(124, 58, 237, 0.12);
-  border: 1px solid rgba(124, 58, 237, 0.4);
-  border-radius: 20px;
-  color: #c4b5fd;
-  font-family: 'Nunito', sans-serif;
+  background: var(--accent-light);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-full);
+  color: var(--accent-primary);
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: clamp(12px, 3vw, 13px);
   padding: 8px 16px;
-  transition: all .2s;
+  transition: all var(--transition-fast);
   cursor: pointer;
 }
 
 .elva-choice-btn:hover {
-  background: rgba(124, 58, 237, 0.28);
-  color: #fff;
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .elva-choices-wrap {
@@ -497,8 +618,8 @@
 ───────────────────────────────────────────── */
 .elva-input-area {
   padding: 12px 14px;
-  border-top: 1px solid rgba(139, 92, 246, .1);
-  background: rgba(8, 8, 20, .6);
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-elevated);
   flex-shrink: 0;
 }
 
@@ -510,47 +631,55 @@
 
 .elva-textarea {
   flex: 1;
-  background: rgba(124, 58, 237, .06);
-  border: 1px solid rgba(124, 58, 237, .22);
-  border-radius: 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 10px 14px;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-size: clamp(13px, 3.5vw, 14px);
   line-height: 1.5;
   resize: none;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
 }
 
 .elva-textarea:focus {
   outline: none;
-  border-color: rgba(124, 58, 237, 0.5);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .elva-textarea::placeholder {
-  color: rgba(148, 163, 184, .4);
+  color: var(--text-muted);
 }
 
 .elva-textarea--voice {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: var(--status-error);
 }
 
 .elva-send-btn {
   width: 44px;
   height: 44px;
-  border-radius: 13px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
   border: none;
   font-size: 19px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.elva-send-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .elva-hint {
   margin-top: 6px;
-  color: rgba(148, 163, 184, .3);
+  color: var(--text-muted);
   font-size: 11px;
   text-align: center;
 }
@@ -574,31 +703,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(13, 13, 26, .9);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, .18);
-  border-radius: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 10px 16px;
   gap: 8px;
 }
 
 .elva-back-btn {
-  background: rgba(124, 58, 237, .12);
-  border: 1px solid rgba(124, 58, 237, .25);
-  color: #a78bfa;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--accent-primary);
   padding: 6px 12px;
   border-radius: 10px;
   font-size: 12px;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 600;
   flex-shrink: 0;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-back-btn:hover {
+  background: var(--bg-hover);
 }
 
 .elva-lesson-title {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
   font-size: clamp(13px, 3.5vw, 15px);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -607,7 +741,7 @@
 }
 
 .elva-slide-count {
-  color: rgba(167, 139, 250, .6);
+  color: var(--text-muted);
   font-size: 12px;
   flex-shrink: 0;
 }
@@ -617,16 +751,16 @@
 ───────────────────────────────────────────── */
 .elva-prog-track {
   height: 4px;
-  background: rgba(139, 92, 246, .1);
+  background: var(--bg-elevated);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .elva-prog-fill {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: var(--accent-gradient);
   transition: width .5s ease;
-  box-shadow: 0 0 10px rgba(124, 58, 237, .6);
+  box-shadow: 0 0 10px var(--accent-glow);
   border-radius: 4px;
 }
 
@@ -635,7 +769,7 @@
 ───────────────────────────────────────────── */
 .elva-slide-card {
   border: 1px solid;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -660,20 +794,20 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 3px;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .elva-slide-h {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(16px, 4vw, 20px);
-  color: #f1f5f9;
+  color: var(--text-primary);
   line-height: 1.3;
 }
 
 .elva-slide-p {
   font-size: clamp(13px, 3vw, 14px);
-  color: rgba(226, 232, 240, .88);
+  color: var(--text-secondary);
   line-height: 2;
 }
 
@@ -682,13 +816,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid rgba(255, 255, 255, .06);
+  border-top: 1px solid var(--border-light);
   padding-top: 12px;
 }
 
 .elva-keypoint {
   font-size: clamp(12px, 2.8vw, 13px);
-  color: rgba(226, 232, 240, .75);
+  color: var(--text-secondary);
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -697,9 +831,9 @@
 
 .elva-example-box {
   margin-top: 10px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   border-left: 3px solid;
 }
@@ -709,22 +843,22 @@
   font-weight: 800;
   letter-spacing: 2px;
   margin-bottom: 6px;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .elva-example-text {
   font-size: clamp(11px, 2.5vw, 13px);
-  color: rgba(226, 232, 240, 0.9);
+  color: var(--text-secondary);
   line-height: 1.9;
-  font-family: monospace;
+  font-family: var(--font-mono);
   white-space: pre-wrap;
 }
 
 .elva-tip-box {
   margin-top: 8px;
-  background: rgba(251, 191, 36, 0.06);
+  background: var(--warning-bg);
   border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 10px 14px;
   display: flex;
   gap: 8px;
@@ -733,7 +867,7 @@
 
 .elva-tip-text {
   font-size: clamp(11px, 2.5vw, 12px);
-  color: rgba(251, 191, 36, 0.9);
+  color: var(--status-warning);
   line-height: 1.7;
 }
 
@@ -741,15 +875,15 @@
    NARRATION BOX
 ───────────────────────────────────────────── */
 .elva-narration-box {
-  background: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, .15);
-  border-radius: 14px;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
 }
 
 .elva-nar-label {
   font-size: 10px;
-  color: rgba(167, 139, 250, .5);
+  color: var(--text-muted);
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 6px;
@@ -757,7 +891,7 @@
 
 .elva-nar-text {
   font-size: 13px;
-  color: rgba(226, 232, 240, .7);
+  color: var(--text-secondary);
   line-height: 1.8;
 }
 
@@ -779,12 +913,12 @@
 }
 
 .elva-dot--active {
-  background: #a78bfa;
+  background: var(--accent-primary);
   transform: scale(1.4);
 }
 
 .elva-dot--inactive {
-  background: rgba(167, 139, 250, 0.2);
+  background: var(--border-hover);
 }
 
 /* ─────────────────────────────────────────────
@@ -800,54 +934,67 @@
 }
 
 .elva-nav-btn {
-  background: rgba(124, 58, 237, .12);
-  border: 1px solid rgba(124, 58, 237, .25);
-  color: #a78bfa;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--accent-primary);
   padding: 10px 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: clamp(12px, 3vw, 14px);
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-nav-btn:hover {
+  background: var(--bg-hover);
 }
 
 .elva-nav-btn--primary {
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
   border-color: transparent;
   color: #fff;
 }
 
+.elva-nav-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
 .elva-nav-btn--finish {
-  background: rgba(16, 185, 129, .2);
-  border-color: #10b981;
-  color: #34d399;
+  background: var(--success-bg);
+  border-color: var(--status-success);
+  color: var(--status-success);
 }
 
 .elva-nav-btn--disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .elva-tts-btn {
   border: 1px solid;
   color: #fff;
   padding: 10px 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: clamp(12px, 3vw, 14px);
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
-  transition: all .3s;
+  transition: all var(--transition-fast);
   cursor: pointer;
 }
 
 .elva-tts-btn--playing {
-  background: rgba(239, 68, 68, .2);
-  border-color: #ef4444;
+  background: var(--error-bg);
+  border-color: var(--status-error);
+  color: var(--status-error);
 }
 
 .elva-tts-btn--idle {
-  background: rgba(124, 58, 237, .2);
-  border-color: #7c3aed;
+  background: var(--accent-light);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 /* ─────────────────────────────────────────────
@@ -867,24 +1014,26 @@
 
 .elva-slide-chat-input {
   flex: 1;
-  background: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  border-radius: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 9px 12px;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-size: clamp(12px, 3vw, 13px);
   line-height: 1.5;
   resize: none;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
 }
 
 .elva-slide-chat-input:focus {
   outline: none;
-  border-color: rgba(124, 58, 237, 0.4);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .elva-slide-chat-input--voice {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: var(--status-error);
 }
 
 .elva-slide-send-btn {
@@ -892,7 +1041,7 @@
   height: 36px;
   border-radius: 10px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--accent-gradient);
   border: none;
   font-size: 17px;
   transition: opacity .2s;
@@ -902,9 +1051,13 @@
   justify-content: center;
 }
 
+.elva-slide-send-btn:hover {
+  transform: translateY(-2px);
+}
+
 .elva-slide-chat-hint {
   margin-top: 5px;
-  color: rgba(148, 163, 184, .25);
+  color: var(--text-muted);
   font-size: 10px;
   text-align: center;
 }
@@ -915,22 +1068,26 @@
 .elva-voice-mic-btn {
   width: 44px;
   height: 44px;
-  border-radius: 13px;
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  background: rgba(124, 58, 237, 0.12);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--accent-light);
   font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all .15s;
+  transition: all var(--transition-fast);
   user-select: none;
   cursor: pointer;
 }
 
+.elva-voice-mic-btn:hover {
+  background: var(--bg-hover);
+}
+
 .elva-voice-mic-btn--active {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: #ef4444;
+  background: var(--error-bg);
+  border-color: var(--status-error);
   animation: glow 1s ease-in-out infinite;
 }
 
@@ -938,7 +1095,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(239, 68, 68, 0.08);
+  background: var(--error-bg);
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 10px;
   padding: 7px 12px;
@@ -950,7 +1107,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(239, 68, 68, 0.07);
+  background: var(--error-bg);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 10px;
   padding: 7px 12px;
@@ -964,18 +1121,18 @@
 }
 
 .elva-voice-dot--listening {
-  color: #f87171;
+  color: var(--status-error);
 }
 
 .elva-voice-dot--judging {
-  color: #fbbf24;
+  color: var(--status-warning);
 }
 
 .elva-voice-stop-btn {
-  background: rgba(239, 68, 68, 0.2);
+  background: var(--error-bg);
   border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 6px;
-  color: #f87171;
+  color: var(--status-error);
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
@@ -989,26 +1146,30 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  background: rgba(124, 58, 237, 0.08);
-  border-radius: 12px;
-  color: #c4b5fd;
-  font-family: 'Nunito', sans-serif;
+  border: 1px solid var(--border-default);
+  background: var(--accent-light);
+  border-radius: var(--radius-md);
+  color: var(--accent-primary);
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 13px;
   padding: 10px;
-  transition: all .15s;
+  transition: all var(--transition-fast);
   user-select: none;
   cursor: pointer;
+}
+
+.elva-voice-answer-btn:hover {
+  background: var(--bg-hover);
 }
 
 /* ─────────────────────────────────────────────
    CHECK-IN CARD
 ───────────────────────────────────────────── */
 .elva-checkin-card {
-  background: rgba(245, 158, 11, 0.06);
+  background: var(--warning-bg);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -1017,10 +1178,10 @@
 }
 
 .elva-checkin-title {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 13px;
-  color: #fbbf24;
+  color: var(--status-warning);
   letter-spacing: 1px;
 }
 
@@ -1031,17 +1192,17 @@
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 2px;
-  color: #a78bfa;
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  border-radius: 20px;
+  color: var(--accent-primary);
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
   padding: 3px 10px;
 }
 
 .elva-quiz-card {
-  background: rgba(13, 13, 26, .8);
-  border: 1px solid rgba(139, 92, 246, .2);
-  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   padding: 22px 18px;
   display: flex;
   flex-direction: column;
@@ -1050,10 +1211,10 @@
 
 .elva-quiz-q {
   font-size: clamp(14px, 3.5vw, 16px);
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-weight: 700;
   line-height: 1.6;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .elva-options-wrap {
@@ -1064,90 +1225,111 @@
 
 .elva-opt-btn {
   padding: 11px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: clamp(12px, 3vw, 14px);
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 600;
   text-align: left;
-  transition: all .2s;
+  transition: all var(--transition-fast);
   cursor: pointer;
 }
 
 .elva-opt-btn--default {
-  background: rgba(124, 58, 237, 0.07);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  color: #e2e8f0;
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+
+.elva-opt-btn--default:hover {
+  background: var(--bg-hover);
 }
 
 .elva-opt-btn--selected {
-  background: rgba(124, 58, 237, 0.25);
-  border: 1px solid #a78bfa;
-  color: #e2e8f0;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .elva-opt-btn--correct {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid #10b981;
-  color: #34d399;
+  background: rgba(16, 185, 129, 0.35);
+  border: 2px solid #10b981;
+  color: #10b981;
+  font-weight: 700;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
 }
 
 .elva-opt-btn--wrong {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid #ef4444;
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.35);
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  font-weight: 700;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
 .elva-opt-btn--reveal {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px dashed #10b981;
-  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.25);
+  border: 2px dashed #10b981;
+  color: #10b981;
+  font-weight: 600;
+  animation: pulse-reveal 1s ease-in-out infinite;
+}
+
+@keyframes pulse-reveal {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 15px 3px rgba(16, 185, 129, 0.3); }
 }
 
 /* ─────────────────────────────────────────────
    FEEDBACK & PROOF
 ───────────────────────────────────────────── */
 .elva-feedback-box {
-  border: 1px solid;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 13px 16px;
 }
 
 .elva-feedback-box--correct {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.25);
+  border: 2px solid #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
 }
 
 .elva-feedback-box--wrong {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
 }
 
 .elva-feedback-box--open {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
 }
 
 .elva-feedback-box--checkin-correct {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.25);
+  border: 2px solid #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
 }
 
 .elva-feedback-box--checkin-wrong {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
 }
 
 .elva-feedback-box--open-partial {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
 }
 
 .elva-proof-btn {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 12px;
-  color: #fbbf24;
-  font-family: 'Nunito', sans-serif;
+  background: rgba(245, 158, 11, 0.15);
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius-md);
+  color: #f59e0b;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 13px;
   padding: 9px 16px;
@@ -1157,12 +1339,18 @@
   width: 100%;
   justify-content: center;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-proof-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
 }
 
 .elva-proof-box {
-  background: rgba(245, 158, 11, 0.06);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-md);
   padding: 14px 18px;
   animation: in .3s ease;
 }
@@ -1173,12 +1361,12 @@
   gap: 8px;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+  border-bottom: 2px solid rgba(245, 158, 11, 0.25);
 }
 
 .elva-model-answer-box {
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  background: rgba(124, 58, 237, 0.15);
+  border: 2px solid rgba(124, 58, 237, 0.3);
   border-radius: 10px;
   padding: 10px 14px;
 }
@@ -1196,11 +1384,12 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(16, 185, 129, 0.06);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-md);
   padding: 14px;
   animation: in .3s ease;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
 /* ─────────────────────────────────────────────
@@ -1219,21 +1408,21 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: rgba(13, 13, 26, .9);
-  border: 1px solid rgba(139, 92, 246, .18);
-  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
   padding: 16px 20px;
 }
 
 .elva-report-title {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(16px, 4vw, 22px);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .elva-report-topic {
-  color: rgba(167, 139, 250, .5);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -1245,9 +1434,9 @@
 
 .elva-stat-card {
   flex: 1 1 80px;
-  background: rgba(13, 13, 26, .8);
-  border: 1px solid rgba(139, 92, 246, .15);
-  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 14px 12px;
   display: flex;
   flex-direction: column;
@@ -1256,10 +1445,10 @@
 }
 
 .elva-stat-num {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 22px;
-  color: #fff;
+  color: var(--text-primary);
   word-break: break-word;
   text-align: center;
 }
@@ -1270,7 +1459,7 @@
 
 .elva-stat-label {
   font-size: 10px;
-  color: rgba(167, 139, 250, .6);
+  color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 1px;
   text-align: center;
@@ -1279,22 +1468,22 @@
 .elva-stat-bar {
   width: 100%;
   height: 5px;
-  background: rgba(139, 92, 246, .15);
+  background: var(--bg-elevated);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .elva-stat-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
   border-radius: 4px;
   transition: width 1s ease;
 }
 
 .elva-report-section {
-  background: rgba(13, 13, 26, .8);
-  border: 1px solid rgba(139, 92, 246, .12);
-  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
@@ -1303,7 +1492,7 @@
 }
 
 .elva-section-title {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 13px;
   letter-spacing: .5px;
@@ -1311,12 +1500,12 @@
 
 .elva-summary-text {
   font-size: 13px;
-  color: rgba(226, 232, 240, .8);
+  color: var(--text-secondary);
   line-height: 1.9;
 }
 
 .elva-point-item {
-  color: rgba(226, 232, 240, .75);
+  color: var(--text-secondary);
   line-height: 1.7;
   display: flex;
   gap: 6px;
@@ -1330,7 +1519,7 @@
 
 .elva-next-step-box {
   border: 1px solid;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 14px 18px;
 }
 
@@ -1346,28 +1535,39 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(251, 191, 36, .08);
+  background: var(--warning-bg);
   border: 1px solid rgba(251, 191, 36, .25);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 12px;
   flex-wrap: wrap;
 }
 
 .elva-report-btn {
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  background: var(--accent-gradient);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   color: #fff;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 14px;
   padding: 11px 28px;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.elva-report-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .elva-report-btn--secondary {
-  background: rgba(124, 58, 237, .15);
-  border: 1px solid rgba(124, 58, 237, .4);
+  background: var(--accent-light);
+  border: 1px solid var(--border-hover);
+  color: var(--accent-primary);
+}
+
+.elva-report-btn--secondary:hover {
+  background: var(--bg-hover);
 }
 
 /* ─────────────────────────────────────────────
@@ -1392,13 +1592,13 @@
 ───────────────────────────────────────────── */
 .elva-criteria-tag {
   display: inline-block;
-  background: rgba(124, 58, 237, 0.12);
-  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: var(--accent-light);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 2px 8px;
   margin: 2px 3px;
   font-size: 11px;
-  color: #c4b5fd;
+  color: var(--accent-primary);
 }
 
 /* ─────────────────────────────────────────────
@@ -1406,20 +1606,22 @@
 ───────────────────────────────────────────── */
 .elva-open-textarea {
   flex: 1;
-  background: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  border-radius: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
   resize: none;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
 }
 
 .elva-open-textarea:focus {
   outline: none;
-  border-color: rgba(124, 58, 237, 0.4);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .elva-open-textarea:disabled {
@@ -1430,12 +1632,21 @@
    SCROLLBAR
 ───────────────────────────────────────────── */
 .elva-root ::-webkit-scrollbar {
-  width: 3px;
+  width: 8px;
+  height: 8px;
+}
+
+.elva-root ::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .elva-root ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, .3);
-  border-radius: 2px;
+  background: var(--accent-light);
+  border-radius: 4px;
+}
+
+.elva-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
 }
 
 /* ─────────────────────────────────────────────
@@ -1447,7 +1658,7 @@
   }
 
   .elva-container {
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
   }
 
   .elva-slide-card {
@@ -1474,6 +1685,20 @@
     font-size: 12px;
     padding: 7px 12px;
   }
+
+  .theme-toggle-track {
+    width: 50px;
+    height: 26px;
+  }
+
+  .theme-toggle-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .theme-toggle-icon {
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 400px) {
@@ -1489,5 +1714,15 @@
 
   .elva-logo-name {
     font-size: 15px;
+  }
+
+  .theme-toggle-track {
+    width: 46px;
+    height: 24px;
+  }
+
+  .theme-toggle-thumb {
+    width: 18px;
+    height: 18px;
   }
 }

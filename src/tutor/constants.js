@@ -208,3 +208,41 @@ export function getNextStep(pct, weakPoints, lang) {
     color: "#34d399" 
   };
 }
+// ─────────────────────────────────────────────
+// 🌓 THEME COLORS
+// ─────────────────────────────────────────────
+
+export const THEMES = {
+  light: {
+    bg: '#f8fafc',
+    bgSecondary: 'rgba(255, 255, 255, 0.95)',
+    bgTertiary: '#f1f5f9',
+    text: '#1e293b',
+    textSecondary: '#475569',
+    textTertiary: '#64748b',
+    border: 'rgba(124, 58, 237, 0.15)',
+    shadow: 'rgba(124, 58, 237, 0.1)',
+    botBubbleBg: 'rgba(124, 58, 237, 0.08)',
+    botBubbleBorder: 'rgba(124, 58, 237, 0.15)',
+    inputBg: 'rgba(124, 58, 237, 0.05)',
+    inputBorder: 'rgba(124, 58, 237, 0.2)',
+    orb1: 'rgba(124, 58, 237, 0.08)',
+    orb2: 'rgba(59, 130, 246, 0.06)',
+  },
+  dark: {
+    bg: '#070711',
+    bgSecondary: 'rgba(13, 13, 26, 0.92)',
+    bgTertiary: '#1a1a2e',
+    text: '#f1f5f9',
+    textSecondary: '#e2e8f0',
+    textTertiary: '#94a3b8',
+    border: 'rgba(139, 92, 246, 0.18)',
+    shadow: 'rgba(124, 58, 237, 0.07)',
+    botBubbleBg: 'rgba(124, 58, 237, 0.07)',
+    botBubbleBorder: 'rgba(124, 58, 237, 0.14)',
+    inputBg: 'rgba(124, 58, 237, 0.06)',
+    inputBorder: 'rgba(124, 58, 237, 0.22)',
+    orb1: 'rgba(124, 58, 237, 0.13)',
+    orb2: 'rgba(59, 130, 246, 0.09)',
+  }
+};
