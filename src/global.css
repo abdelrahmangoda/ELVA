@@ -1161,7 +1161,6 @@ img, svg {
 
 .auth-container--avatar {
   max-width: 95vw;
-  max-height: 95vh;
   overflow: hidden;
 }
 

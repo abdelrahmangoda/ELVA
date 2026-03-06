@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AvatarCreator, { buildAvatarSVG } from '../components/AvatarCreator';
 import Dashboard from '../components/Dashboard';
@@ -8,8 +8,10 @@ import Dashboard from '../components/Dashboard';
 export default function ProfilePage() {
   const { user, updateUser, updateAvatar, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [activeView, setActiveView] = useState('dashboard');
+  // Read view from URL params, default to 'dashboard'
+  const [activeView, setActiveView] = useState(searchParams.get('view') || 'dashboard');
   const [editing, setEditing] = useState(false);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,6 +19,20 @@ export default function ProfilePage() {
     lastName: user?.lastName || '',
     email: user?.email || '',
   });
+
+  // Sync activeView with URL params
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam && (viewParam === 'dashboard' || viewParam === 'settings')) {
+      setActiveView(viewParam);
+    }
+  }, [searchParams]);
+
+  // Update URL when view changes
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    setSearchParams({ view });
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,15 +61,9 @@ export default function ProfilePage() {
         <div className="profile-nav">
           <button 
             className={`profile-nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveView('dashboard')}
+            onClick={() => handleViewChange('dashboard')}
           >
             📊 Dashboard
-          </button>
-          <button 
-            className={`profile-nav-btn ${activeView === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveView('settings')}
-          >
-            ⚙️ Settings
           </button>
         </div>
 

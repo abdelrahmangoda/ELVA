@@ -2,10 +2,11 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { buildAvatarSVG } from './AvatarCreator';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -36,6 +37,11 @@ export default function Dashboard() {
     { icon: '📖', name: 'Bookworm', desc: 'Complete 25 lessons', unlocked: (user.lessonsCompleted || 0) >= 25 },
     { icon: '🏆', name: 'Elite Learner', desc: 'Reach Level 10', unlocked: (user.level || 1) >= 10 },
   ];
+
+  // Navigate to profile settings
+  const goToProfileSettings = () => {
+    navigate('/profile?view=settings');
+  };
 
   return (
     <div className="dashboard">
@@ -144,10 +150,11 @@ export default function Dashboard() {
             <span className="action-icon">📚</span>
             <span className="action-text">New Lesson</span>
           </Link>
-          <Link to="/profile" className="action-card">
+          {/* Updated: Now navigates to profile settings */}
+          <button className="action-card" onClick={goToProfileSettings}>
             <span className="action-icon">👤</span>
             <span className="action-text">Edit Profile</span>
-          </Link>
+          </button>
           <button className="action-card" onClick={() => {}}>
             <span className="action-icon">📊</span>
             <span className="action-text">View Progress</span>

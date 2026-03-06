@@ -140,6 +140,7 @@ export default function LandingPage() {
           <span className="section-badge">Process</span>
           <h2>How ELVA Works</h2>
           <p>Four simple steps to transform your learning experience forever.</p>
+          <br />
         </div>
         
         <div className="steps-grid">
