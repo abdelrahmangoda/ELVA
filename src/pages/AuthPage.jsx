@@ -7,8 +7,8 @@ import AvatarCreator from '../components/AvatarCreator';
 // Education level configurations
 const EDUCATION_CONFIG = {
   "Elementary School": {
-    hasYears: false,
-    hasTerms: false,
+    hasYears: true,
+    hasTerms: true,
     years: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"],
   },
   "Middle School": {
