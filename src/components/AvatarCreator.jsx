@@ -1,5 +1,5 @@
 // src/components/AvatarCreator.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 // ══════════════════════════════════════════════════════════════
 // AVATAR DATA
@@ -110,7 +110,8 @@ export function buildAvatarSVG(cfg, size = 160) {
     lip = LIP[0], 
     bg = BG[0], 
     accessory = "none",
-    faceShape = "oval"
+    faceShape = "oval",
+    hasBeard = false
   } = cfg || {};
 
   const getFacePathD = () => {
@@ -121,9 +122,18 @@ export function buildAvatarSVG(cfg, size = 160) {
         return "M80 48 C115 48 118 75 118 95 C118 125 108 138 80 138 C52 138 42 125 42 95 C42 75 45 48 80 48";
       case "heart":
         return "M80 48 C120 48 120 78 118 95 C116 120 100 138 80 140 C60 138 44 120 42 95 C40 78 40 48 80 48";
-      default: // oval
+      default:
         return "M80 48 C115 52 118 85 118 100 C118 125 100 138 80 140 C60 138 42 125 42 100 C42 85 45 52 80 48";
     }
+  };
+
+  const getBeardSVG = () => {
+    if (!hasBeard || gender !== "male") return "";
+    return `
+      <ellipse cx="80" cy="125" rx="22" ry="18" fill="${hair}" opacity="0.7"/>
+      <rect x="58" y="108" width="44" height="20" fill="${hair}" opacity="0.5" rx="4"/>
+      <ellipse cx="80" cy="130" rx="18" ry="12" fill="${hair}" opacity="0.8"/>
+    `;
   };
 
   const getHairSVG = () => {
@@ -185,17 +195,25 @@ export function buildAvatarSVG(cfg, size = 160) {
     
     switch (accessory) {
       case "glasses":
-        return `<circle cx="66" cy="90" r="12" fill="none" stroke="#444" stroke-width="2.5"/>
-          <circle cx="94" cy="90" r="12" fill="none" stroke="#444" stroke-width="2.5"/>
-          <line x1="78" y1="90" x2="82" y2="90" stroke="#444" stroke-width="2"/>
-          <line x1="54" y1="88" x2="42" y2="85" stroke="#444" stroke-width="2"/>
-          <line x1="106" y1="88" x2="118" y2="85" stroke="#444" stroke-width="2"/>`;
+        return `
+          <ellipse cx="66" cy="90" rx="14" ry="12" fill="none" stroke="#333" stroke-width="2.5"/>
+          <ellipse cx="94" cy="90" rx="14" ry="12" fill="none" stroke="#333" stroke-width="2.5"/>
+          <line x1="80" y1="90" x2="80" y2="90" stroke="#333" stroke-width="3"/>
+          <path d="M52 88 L42 85" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+          <path d="M108 88 L118 85" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="66" cy="90" rx="12" ry="10" fill="rgba(200,220,255,0.15)"/>
+          <ellipse cx="94" cy="90" rx="12" ry="10" fill="rgba(200,220,255,0.15)"/>
+        `;
       case "sunglasses":
-        return `<rect x="52" y="82" width="28" height="16" rx="6" fill="#111" opacity=".95"/>
-          <rect x="80" y="82" width="28" height="16" rx="6" fill="#111" opacity=".95"/>
-          <line x1="80" y1="90" x2="80" y2="90" stroke="#333" stroke-width="2"/>
-          <line x1="42" y1="87" x2="52" y2="88" stroke="#333" stroke-width="2"/>
-          <line x1="108" y1="88" x2="118" y2="87" stroke="#333" stroke-width="2"/>`;
+        return `
+          <rect x="50" y="82" width="30" height="18" rx="4" fill="#111" opacity=".95"/>
+          <rect x="80" y="82" width="30" height="18" rx="4" fill="#111" opacity=".95"/>
+          <rect x="78" y="88" width="4" height="4" fill="#333"/>
+          <path d="M50 88 L40 85" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M110 88 L120 85" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M54 86 L60 84" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M84 86 L90 84" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+        `;
       case "headband":
         return `<rect x="38" y="62" width="84" height="12" rx="6" fill="#7c3aed" opacity=".9"/>`;
       case "cap":
@@ -233,6 +251,7 @@ export function buildAvatarSVG(cfg, size = 160) {
       <circle cx="68" cy="88" r="2" fill="white"/>
       <circle cx="96" cy="88" r="2" fill="white"/>
       <path d="M77 100 Q80 106 83 100" stroke="#a06030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      ${getBeardSVG()}
       <path d="M66 115 Q73 120 80 118 Q87 120 94 115" fill="${lip}"/>
       <path d="M66 115 Q80 111 94 115" fill="${lip}" opacity="0.8"/>
       ${getAccessorySVG()}
@@ -256,8 +275,270 @@ const DEFAULT_AVATAR = {
   lip: LIP[0],
   bg: BG[0],
   accessory: "none",
-  faceShape: "oval"
+  faceShape: "oval",
+  hasBeard: false
 };
+
+// ══════════════════════════════════════════════════════════════
+// FACE ANALYSIS UTILITIES
+// ══════════════════════════════════════════════════════════════
+
+// Analyze pixel region for glasses detection
+function analyzeRegionForGlasses(canvas, ctx, landmarks, faceBox) {
+  try {
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    
+    if (!leftEye || !rightEye || leftEye.length === 0) return false;
+    
+    // Get eye region bounds
+    const leftEyeCenter = {
+      x: leftEye.reduce((sum, p) => sum + p.x, 0) / leftEye.length,
+      y: leftEye.reduce((sum, p) => sum + p.y, 0) / leftEye.length
+    };
+    const rightEyeCenter = {
+      x: rightEye.reduce((sum, p) => sum + p.x, 0) / rightEye.length,
+      y: rightEye.reduce((sum, p) => sum + p.y, 0) / rightEye.length
+    };
+    
+    // Sample area above and around eyes for glasses frames
+    const sampleSize = Math.abs(rightEyeCenter.x - leftEyeCenter.x) * 0.15;
+    const regions = [
+      { x: leftEyeCenter.x - sampleSize, y: leftEyeCenter.y - sampleSize * 2 },
+      { x: leftEyeCenter.x + sampleSize, y: leftEyeCenter.y - sampleSize * 2 },
+      { x: rightEyeCenter.x - sampleSize, y: rightEyeCenter.y - sampleSize * 2 },
+      { x: rightEyeCenter.x + sampleSize, y: rightEyeCenter.y - sampleSize * 2 },
+      // Bridge of nose
+      { x: (leftEyeCenter.x + rightEyeCenter.x) / 2, y: leftEyeCenter.y - sampleSize },
+    ];
+    
+    let darkPixelCount = 0;
+    let totalPixels = 0;
+    
+    regions.forEach(region => {
+      const x = Math.max(0, Math.min(canvas.width - 3, Math.floor(region.x)));
+      const y = Math.max(0, Math.min(canvas.height - 3, Math.floor(region.y)));
+      
+      try {
+        const imageData = ctx.getImageData(x, y, 3, 3);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          if (brightness < 80) darkPixelCount++;
+          totalPixels++;
+        }
+      } catch (e) {
+        // Ignore sampling errors
+      }
+    });
+    
+    // If more than 40% of sampled pixels are dark, likely glasses
+    const darkRatio = darkPixelCount / Math.max(totalPixels, 1);
+    return darkRatio > 0.35;
+  } catch (e) {
+    console.error("Glasses detection error:", e);
+    return false;
+  }
+}
+
+// Analyze for beard/facial hair
+function analyzeRegionForBeard(canvas, ctx, landmarks, faceBox, gender) {
+  if (gender !== "male") return false;
+  
+  try {
+    const jawOutline = landmarks.getJawOutline();
+    const nose = landmarks.getNose();
+    
+    if (!jawOutline || jawOutline.length < 10 || !nose || nose.length === 0) return false;
+    
+    // Get chin/jaw area
+    const chinPoint = jawOutline[Math.floor(jawOutline.length / 2)];
+    const noseBottom = nose[nose.length - 1];
+    
+    // Sample region between nose bottom and chin
+    const sampleY = (noseBottom.y + chinPoint.y) / 2;
+    const sampleWidth = Math.abs(jawOutline[jawOutline.length - 1].x - jawOutline[0].x) * 0.4;
+    const centerX = chinPoint.x;
+    
+    const regions = [
+      { x: centerX - sampleWidth / 2, y: sampleY },
+      { x: centerX, y: sampleY },
+      { x: centerX + sampleWidth / 2, y: sampleY },
+      { x: centerX, y: sampleY + 10 },
+      { x: centerX, y: chinPoint.y - 5 },
+    ];
+    
+    let darkPixelCount = 0;
+    let skinPixelCount = 0;
+    let totalPixels = 0;
+    
+    // First, sample forehead for skin color reference
+    const foreheadY = faceBox.y + faceBox.height * 0.1;
+    const foreheadX = faceBox.x + faceBox.width / 2;
+    let skinBrightness = 180;
+    
+    try {
+      const skinSample = ctx.getImageData(
+        Math.floor(foreheadX), 
+        Math.floor(foreheadY), 
+        5, 5
+      );
+      let totalBrightness = 0;
+      for (let i = 0; i < skinSample.data.length; i += 4) {
+        totalBrightness += (skinSample.data[i] + skinSample.data[i + 1] + skinSample.data[i + 2]) / 3;
+      }
+      skinBrightness = totalBrightness / (skinSample.data.length / 4);
+    } catch (e) {}
+    
+    // Now sample beard region
+    regions.forEach(region => {
+      const x = Math.max(0, Math.min(canvas.width - 5, Math.floor(region.x)));
+      const y = Math.max(0, Math.min(canvas.height - 5, Math.floor(region.y)));
+      
+      try {
+        const imageData = ctx.getImageData(x, y, 5, 5);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          // Compare to skin - beard is usually significantly darker
+          if (brightness < skinBrightness * 0.65) {
+            darkPixelCount++;
+          }
+          totalPixels++;
+        }
+      } catch (e) {}
+    });
+    
+    // If beard region is significantly darker than skin
+    const darkRatio = darkPixelCount / Math.max(totalPixels, 1);
+    return darkRatio > 0.25;
+  } catch (e) {
+    console.error("Beard detection error:", e);
+    return false;
+  }
+}
+
+// Detect skin tone from face
+function detectSkinTone(canvas, ctx, landmarks, faceBox) {
+  try {
+    // Sample from cheek area (more reliable than forehead due to hair)
+    const leftCheek = landmarks.getLeftEye();
+    const rightCheek = landmarks.getRightEye();
+    const jawOutline = landmarks.getJawOutline();
+    
+    if (!leftCheek || !jawOutline) return SKIN[2]; // Default
+    
+    // Sample from cheek region
+    const leftEyeCenter = {
+      x: leftCheek.reduce((sum, p) => sum + p.x, 0) / leftCheek.length,
+      y: leftCheek.reduce((sum, p) => sum + p.y, 0) / leftCheek.length
+    };
+    
+    const cheekY = leftEyeCenter.y + (jawOutline[0].y - leftEyeCenter.y) * 0.4;
+    const cheekX = jawOutline[2].x;
+    
+    const x = Math.max(0, Math.min(canvas.width - 10, Math.floor(cheekX)));
+    const y = Math.max(0, Math.min(canvas.height - 10, Math.floor(cheekY)));
+    
+    const imageData = ctx.getImageData(x, y, 10, 10);
+    const data = imageData.data;
+    
+    let r = 0, g = 0, b = 0, count = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      r += data[i];
+      g += data[i + 1];
+      b += data[i + 2];
+      count++;
+    }
+    
+    r = Math.floor(r / count);
+    g = Math.floor(g / count);
+    b = Math.floor(b / count);
+    
+    // Find closest skin tone
+    let closestSkin = SKIN[0];
+    let minDistance = Infinity;
+    
+    SKIN.forEach(skinColor => {
+      // Parse hex color
+      const sr = parseInt(skinColor.slice(1, 3), 16);
+      const sg = parseInt(skinColor.slice(3, 5), 16);
+      const sb = parseInt(skinColor.slice(5, 7), 16);
+      
+      const distance = Math.sqrt(
+        Math.pow(r - sr, 2) + 
+        Math.pow(g - sg, 2) + 
+        Math.pow(b - sb, 2)
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSkin = skinColor;
+      }
+    });
+    
+    return closestSkin;
+  } catch (e) {
+    console.error("Skin tone detection error:", e);
+    return SKIN[2];
+  }
+}
+
+// Detect face shape from landmarks
+function detectFaceShape(landmarks) {
+  try {
+    const jawOutline = landmarks.getJawOutline();
+    if (!jawOutline || jawOutline.length < 10) return "oval";
+    
+    // Calculate face dimensions
+    const faceWidth = Math.abs(jawOutline[jawOutline.length - 1].x - jawOutline[0].x);
+    const faceHeight = Math.abs(jawOutline[Math.floor(jawOutline.length / 2)].y - jawOutline[0].y);
+    const ratio = faceWidth / faceHeight;
+    
+    // Calculate jaw width vs cheekbone width
+    const jawWidth = Math.abs(jawOutline[jawOutline.length - 3].x - jawOutline[2].x);
+    const midWidth = Math.abs(jawOutline[jawOutline.length - 5].x - jawOutline[4].x);
+    const jawRatio = jawWidth / midWidth;
+    
+    if (ratio > 1.1) return "round";
+    if (ratio < 0.75) return "oval";
+    if (jawRatio > 0.9) return "square";
+    if (jawRatio < 0.75) return "heart";
+    
+    return "oval";
+  } catch (e) {
+    return "oval";
+  }
+}
+
+// Get hair style based on age
+function getHairStyleForAge(age, gender) {
+  if (gender === "male") {
+    if (age > 50) return Math.random() > 0.4 ? "bald" : "short";
+    if (age > 35) return Math.random() > 0.7 ? "slick" : "short";
+    if (age < 25) return ["spiky", "fade", "curly", "mohawk"][Math.floor(Math.random() * 4)];
+    return ["short", "fade", "slick"][Math.floor(Math.random() * 3)];
+  } else {
+    if (age > 40) return ["bob", "short", "bun"][Math.floor(Math.random() * 3)];
+    if (age < 25) return ["long", "ponytail", "wavy", "braids"][Math.floor(Math.random() * 4)];
+    return ["long", "bob", "wavy", "bun"][Math.floor(Math.random() * 4)];
+  }
+}
+
+// Get hair color based on age
+function getHairColorForAge(age) {
+  if (age > 55) {
+    // Gray/white hair
+    return HAIR[Math.random() > 0.5 ? 11 : 7]; // Lighter colors
+  }
+  if (age > 45 && Math.random() > 0.6) {
+    return HAIR[7]; // Some gray
+  }
+  // Natural colors
+  return HAIR[Math.floor(Math.random() * 6)];
+}
 
 // ══════════════════════════════════════════════════════════════
 // AVATAR CREATOR COMPONENT
@@ -280,12 +561,16 @@ export default function AvatarCreator({
   const [activeTab, setActiveTab] = useState("presets");
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState("");
+  const [scanProgress, setScanProgress] = useState(0);
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [detectedFeatures, setDetectedFeatures] = useState(null);
   
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const scanningRef = useRef(false);
+  const isMountedRef = useRef(true);
 
-  // Effect to sync gender when filter changes
   useEffect(() => {
     if (filterGender) {
       setGender(filterGender);
@@ -297,21 +582,18 @@ export default function AvatarCreator({
     }
   }, [filterGender]);
 
-  // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-      }
+      isMountedRef.current = false;
+      stopCamera();
     };
   }, []);
 
-  // Update avatar function
   const update = (key, value) => {
     setAvatar(prev => ({ ...prev, [key]: value }));
   };
   
-  // Select preset
   const selectPreset = (preset) => {
     setAvatar({ ...preset });
     if (!filterGender) {
@@ -319,7 +601,6 @@ export default function AvatarCreator({
     }
   };
   
-  // Randomize avatar
   const randomize = () => {
     const g = filterGender || (Math.random() > 0.5 ? "male" : "female");
     const styles = HAIR_STYLES[g];
@@ -333,7 +614,8 @@ export default function AvatarCreator({
       lip: LIP[Math.floor(Math.random() * LIP.length)],
       bg: BG[Math.floor(Math.random() * BG.length)],
       accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)].id,
-      faceShape: shapes[Math.floor(Math.random() * shapes.length)].id
+      faceShape: shapes[Math.floor(Math.random() * shapes.length)].id,
+      hasBeard: g === "male" && Math.random() > 0.7
     };
     setAvatar(newAvatar);
     if (!filterGender) {
@@ -341,130 +623,294 @@ export default function AvatarCreator({
     }
   };
   
-  // Handle save
   const handleSave = () => {
-    if (onSave) {
-      onSave(avatar);
-    }
-    if (onClose) {
-      onClose();
-    }
+    if (onSave) onSave(avatar);
+    if (onClose) onClose();
   };
 
-  // Handle gender change
   const handleGenderChange = (newGender) => {
-    if (filterGender) return; // Prevent change if gender is filtered
+    if (filterGender) return;
     setGender(newGender);
     update("gender", newGender);
     update("hairStyle", newGender === "male" ? "short" : "long");
+    if (newGender === "female") {
+      update("hasBeard", false);
+    }
   };
 
-  // Face scanning functions (same as before)
+  // ══════════════════════════════════════════════════════════════
+  // FACE SCANNING - ENHANCED VERSION
+  // ══════════════════════════════════════════════════════════════
+  
+  const getFaceAPI = () => {
+    return window.faceapi || (typeof faceapi !== 'undefined' ? faceapi : null);
+  };
+
   const loadModels = async () => {
     if (modelsLoaded) return true;
-    if (typeof faceapi === 'undefined') {
-      setScanStatus("Face detection not available");
+    
+    const faceAPI = getFaceAPI();
+    if (!faceAPI) {
+      setScanStatus("❌ Face detection library not loaded");
       return false;
     }
-    setScanStatus("Loading AI models...");
+    
+    setScanStatus("🔄 Loading AI models...");
+    setScanProgress(10);
+    
     try {
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
-      setModelsLoaded(true);
+      await faceAPI.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      setScanProgress(40);
+      await faceAPI.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      setScanProgress(70);
+      await faceAPI.nets.ageGenderNet.loadFromUri(MODEL_URL);
+      setScanProgress(100);
+      
+      if (isMountedRef.current) {
+        setModelsLoaded(true);
+        setScanStatus("✅ AI models ready!");
+      }
       return true;
     } catch (e) {
-      console.error("Failed to load face models:", e);
-      setScanStatus("Failed to load AI models");
+      console.error("Failed to load models:", e);
+      setScanStatus("❌ Failed to load AI models");
       return false;
     }
   };
 
   const startCamera = async () => {
     try {
+      setScanStatus("📷 Starting camera...");
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 640, max: 1280 }, 
+          height: { ideal: 480, max: 720 } 
+        } 
       });
+      
+      if (!isMountedRef.current) {
+        stream.getTracks().forEach(t => t.stop());
+        return false;
+      }
+      
       streamRef.current = stream;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        
+        return new Promise((resolve) => {
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play()
+              .then(() => {
+                // Setup canvas for analysis
+                if (canvasRef.current) {
+                  canvasRef.current.width = videoRef.current.videoWidth;
+                  canvasRef.current.height = videoRef.current.videoHeight;
+                }
+                setScanStatus("👤 Position your face in the oval...");
+                resolve(true);
+              })
+              .catch(() => {
+                setScanStatus("❌ Could not start video");
+                resolve(false);
+              });
+          };
+        });
       }
       return true;
     } catch (e) {
-      console.error("Camera access error:", e);
-      setScanStatus("Camera access denied");
+      if (e.name === 'NotAllowedError') {
+        setScanStatus("❌ Camera permission denied");
+      } else if (e.name === 'NotFoundError') {
+        setScanStatus("❌ No camera found");
+      } else {
+        setScanStatus(`❌ Camera error: ${e.message}`);
+      }
       return false;
     }
   };
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
+    scanningRef.current = false;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    if (isMountedRef.current) {
+      setScanning(false);
+      setScanProgress(0);
     }
-    setScanning(false);
+  }, []);
+
+  const analyzeFrame = async () => {
+    const faceAPI = getFaceAPI();
+    if (!faceAPI || !videoRef.current || !canvasRef.current) return null;
+    if (videoRef.current.readyState < 2) return null;
+    
+    try {
+      // Draw current frame to canvas for pixel analysis
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0);
+      
+      const detection = await faceAPI
+        .detectSingleFace(videoRef.current, new faceAPI.TinyFaceDetectorOptions({
+          inputSize: 416,
+          scoreThreshold: 0.5
+        }))
+        .withFaceLandmarks()
+        .withAgeAndGender();
+      
+      if (!detection) return null;
+      
+      // Enhanced analysis
+      const landmarks = detection.landmarks;
+      const faceBox = detection.detection.box;
+      const detectedGender = detection.gender;
+      const age = detection.age;
+      
+      // Detect features
+      const hasGlasses = analyzeRegionForGlasses(canvasRef.current, ctx, landmarks, faceBox);
+      const hasBeard = analyzeRegionForBeard(canvasRef.current, ctx, landmarks, faceBox, detectedGender);
+      const skinTone = detectSkinTone(canvasRef.current, ctx, landmarks, faceBox);
+      const faceShape = detectFaceShape(landmarks);
+      
+      return {
+        gender: detectedGender,
+        age: Math.round(age),
+        hasGlasses,
+        hasBeard,
+        skinTone,
+        faceShape,
+        confidence: detection.detection.score
+      };
+    } catch (e) {
+      console.error("Analysis error:", e);
+      return null;
+    }
+  };
+
+  const runDetectionLoop = async () => {
+    let attempts = 0;
+    const maxAttempts = 20;
+    let bestDetection = null;
+    let bestConfidence = 0;
+    
+    while (scanningRef.current && attempts < maxAttempts && isMountedRef.current) {
+      const progress = Math.round(((attempts + 1) / maxAttempts) * 100);
+      setScanProgress(progress);
+      setScanStatus(`🔍 Analyzing face... ${progress}%`);
+      
+      const detection = await analyzeFrame();
+      
+      if (detection && detection.confidence > bestConfidence) {
+        bestDetection = detection;
+        bestConfidence = detection.confidence;
+        
+        // If we have a good detection (>0.8), we can stop early
+        if (bestConfidence > 0.8 && attempts > 5) {
+          break;
+        }
+      }
+      
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    if (bestDetection && isMountedRef.current) {
+      setDetectedFeatures(bestDetection);
+      applyDetectedFeatures(bestDetection);
+      return true;
+    }
+    
+    if (isMountedRef.current && scanningRef.current) {
+      setScanStatus("😕 No face detected. Try better lighting.");
+      setTimeout(() => stopCamera(), 2000);
+    }
+    
+    return false;
+  };
+
+  const applyDetectedFeatures = (features) => {
+    const g = filterGender || features.gender;
+    const age = features.age;
+    
+    const newAvatar = {
+      ...avatar,
+      gender: g,
+      faceShape: features.faceShape,
+      skin: features.skinTone,
+      hair: getHairColorForAge(age),
+      hairStyle: getHairStyleForAge(age, g),
+      eye: EYE[Math.floor(Math.random() * 8)],
+      lip: g === "female" ? LIP[Math.floor(Math.random() * LIP.length)] : LIP[0],
+      accessory: features.hasGlasses ? "glasses" : "none",
+      hasBeard: features.hasBeard,
+      bg: BG[Math.floor(Math.random() * BG.length)]
+    };
+    
+    setAvatar(newAvatar);
+    if (!filterGender) setGender(g);
+    
+    const featuresList = [];
+    featuresList.push(`${g}`);
+    featuresList.push(`~${age} years old`);
+    if (features.hasGlasses) featuresList.push("👓 glasses");
+    if (features.hasBeard) featuresList.push("🧔 beard");
+    featuresList.push(`${features.faceShape} face`);
+    
+    setScanStatus(`✅ Detected: ${featuresList.join(", ")}`);
+    
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        stopCamera();
+        setActiveTab("customize");
+      }
+    }, 2000);
   };
 
   const startScan = async () => {
-    setScanning(true);
-    setScanStatus("Initializing...");
-    const loaded = await loadModels();
-    if (!loaded) { setScanning(false); return; }
-    const cameraStarted = await startCamera();
-    if (!cameraStarted) { setScanning(false); return; }
-    setScanStatus("Position your face in the frame...");
+    if (scanningRef.current) return;
     
-    setTimeout(async () => {
-      if (!videoRef.current || !scanning) return;
-      try {
-        setScanStatus("Analyzing face...");
-        const detection = await faceapi
-          .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks()
-          .withAgeAndGender();
-        
-        if (detection) {
-          const detectedGender = detection.gender;
-          const g = filterGender || (detectedGender === "male" ? "male" : "female");
-          const newAvatar = {
-            ...avatar,
-            gender: g,
-            hairStyle: g === "male" ? "short" : "long",
-            skin: SKIN[Math.floor(Math.random() * 6)],
-            hair: HAIR[Math.floor(Math.random() * 6)],
-            eye: EYE[Math.floor(Math.random() * 6)]
-          };
-          setAvatar(newAvatar);
-          if (!filterGender) {
-            setGender(g);
-          }
-          setScanStatus(`✅ Detected: ${g}, ~${Math.round(detection.age)} years old`);
-          setTimeout(() => { setActiveTab("customize"); }, 1500);
-        } else {
-          setScanStatus("No face detected. Try again.");
-        }
-      } catch (e) {
-        console.error("Face detection error:", e);
-        setScanStatus("Scan failed. Please try again.");
-      }
+    scanningRef.current = true;
+    setScanning(true);
+    setDetectedFeatures(null);
+    setScanProgress(0);
+    setScanStatus("🚀 Initializing...");
+    
+    const loaded = await loadModels();
+    if (!loaded || !isMountedRef.current) {
+      scanningRef.current = false;
+      setScanning(false);
+      return;
+    }
+    
+    const cameraStarted = await startCamera();
+    if (!cameraStarted || !isMountedRef.current) {
+      scanningRef.current = false;
+      setScanning(false);
+      return;
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (!scanningRef.current || !isMountedRef.current) {
       stopCamera();
-    }, 3000);
+      return;
+    }
+    
+    await runDetectionLoop();
   };
 
-  // Get filtered presets based on gender
-  const filteredPresets = filterGender 
-    ? PRESETS[filterGender] 
-    : PRESETS[gender];
+  const filteredPresets = filterGender ? PRESETS[filterGender] : PRESETS[gender];
 
   // ══════════════════════════════════════════════════════════════
-  // RENDER CONTENT
+  // RENDER
   // ══════════════════════════════════════════════════════════════
   const renderContent = () => (
     <div className={`avatar-creator-inner ${fullScreen ? 'avatar-creator-inner--fullscreen' : ''}`}>
-      {/* Header */}
       <div className="avatar-creator-header">
         <h3>🎨 {fullScreen ? 'Choose Your Avatar' : 'Create Your Avatar'}</h3>
         {isModal && onClose && (
@@ -472,7 +918,6 @@ export default function AvatarCreator({
         )}
       </div>
       
-      {/* Tabs */}
       <div className="avatar-tabs">
         <button 
           className={`avatar-tab ${activeTab === 'presets' ? 'active' : ''}`}
@@ -489,14 +934,16 @@ export default function AvatarCreator({
         {showFaceScan && (
           <button 
             className={`avatar-tab ${activeTab === 'scan' ? 'active' : ''}`}
-            onClick={() => setActiveTab('scan')}
+            onClick={() => { 
+              setActiveTab('scan');
+              if (scanning) stopCamera();
+            }}
           >
             📷 Face Scan
           </button>
         )}
       </div>
       
-      {/* Content */}
       <div className={`avatar-creator-content ${fullScreen ? 'avatar-creator-content--fullscreen' : ''}`}>
         {/* Preview Section */}
         <div className={`avatar-preview-section ${fullScreen ? 'avatar-preview-section--fullscreen' : ''}`}>
@@ -509,9 +956,19 @@ export default function AvatarCreator({
               🎲 Random
             </button>
             <button className="avatar-action-btn save" onClick={handleSave}>
-              💾 {fullScreen ? 'Use This Avatar' : 'Save'}
+              💾 {fullScreen ? 'Use Avatar' : 'Save'}
             </button>
           </div>
+          
+          {/* Feature badges */}
+          {detectedFeatures && (
+            <div className="detected-features-badges">
+              <span className="feature-badge">👤 {detectedFeatures.gender}</span>
+              <span className="feature-badge">🎂 ~{detectedFeatures.age}y</span>
+              {detectedFeatures.hasGlasses && <span className="feature-badge">👓</span>}
+              {detectedFeatures.hasBeard && <span className="feature-badge">🧔</span>}
+            </div>
+          )}
         </div>
         
         {/* Controls Section */}
@@ -519,7 +976,6 @@ export default function AvatarCreator({
           {/* PRESETS TAB */}
           {activeTab === 'presets' && (
             <>
-              {/* Only show gender selection if not filtered */}
               {!filterGender && (
                 <div className="avatar-section">
                   <label>Gender</label>
@@ -541,14 +997,13 @@ export default function AvatarCreator({
               )}
               
               <div className="avatar-section">
-                <label>Choose a Preset {filterGender && `(${filterGender === 'male' ? 'Male' : 'Female'} Avatars)`}</label>
+                <label>Choose a Preset</label>
                 <div className={`avatar-presets-grid ${fullScreen ? 'avatar-presets-grid--large' : ''}`}>
                   {filteredPresets.map((preset, i) => (
                     <button 
                       key={i} 
                       className={`avatar-preset-card ${avatar.skin === preset.skin && avatar.hairStyle === preset.hairStyle ? 'selected' : ''}`}
                       onClick={() => selectPreset(preset)}
-                      title={preset.name}
                     >
                       <div dangerouslySetInnerHTML={{ __html: buildAvatarSVG(preset, fullScreen ? 80 : 70) }} />
                       <span className="preset-name">{preset.name}</span>
@@ -639,6 +1094,27 @@ export default function AvatarCreator({
                   ))}
                 </div>
               </div>
+
+              {/* Beard option for males */}
+              {gender === "male" && (
+                <div className="avatar-section">
+                  <label>Facial Hair</label>
+                  <div className="avatar-pills">
+                    <button
+                      className={`avatar-pill ${!avatar.hasBeard ? "selected" : ""}`}
+                      onClick={() => update("hasBeard", false)}
+                    >
+                      Clean Shaven
+                    </button>
+                    <button
+                      className={`avatar-pill ${avatar.hasBeard ? "selected" : ""}`}
+                      onClick={() => update("hasBeard", true)}
+                    >
+                      🧔 Beard
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="avatar-section">
                 <label>Eye Color</label>
@@ -702,32 +1178,90 @@ export default function AvatarCreator({
           {/* FACE SCAN TAB */}
           {activeTab === 'scan' && showFaceScan && (
             <div className="avatar-scan-section">
-              <div className="scan-preview">
-                {scanning ? (
-                  <video ref={videoRef} autoPlay muted playsInline className="scan-video" />
-                ) : (
-                  <div className="scan-placeholder">
-                    <span>📷</span>
-                    <p>Scan your face to create a personalized avatar</p>
-                  </div>
-                )}
-                <div className="scan-overlay">
-                  <div className="scan-frame"></div>
+              <div className="scan-preview-container">
+                <div className="scan-preview">
+                  {scanning ? (
+                    <>
+                      <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        muted 
+                        playsInline 
+                        className="scan-video"
+                      />
+                      <canvas ref={canvasRef} className="scan-canvas" />
+                      <div className="scan-overlay">
+                        <svg className="scan-oval" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid meet">
+                          <ellipse 
+                            cx="100" 
+                            cy="130" 
+                            rx="85" 
+                            ry="110" 
+                            fill="none" 
+                            stroke="var(--accent-primary)" 
+                            strokeWidth="3"
+                            strokeDasharray="10,5"
+                            className="scan-oval-path"
+                          />
+                        </svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="scan-placeholder">
+                      <span>📷</span>
+                      <p>AI-powered face scan will detect your features and create a matching avatar</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {scanStatus && <div className="scan-status">{scanStatus}</div>}
+              {/* Progress bar */}
+              {scanning && scanProgress > 0 && (
+                <div className="scan-progress-bar">
+                  <div className="scan-progress-fill" style={{ width: `${scanProgress}%` }}></div>
+                </div>
+              )}
+              
+              <div className={`scan-status ${scanStatus.includes('✅') ? 'success' : scanStatus.includes('❌') ? 'error' : ''}`}>
+                {scanStatus}
+              </div>
               
               <div className="scan-actions">
                 {scanning ? (
-                  <button className="scan-btn cancel" onClick={stopCamera}>✕ Cancel</button>
+                  <button className="scan-btn cancel" onClick={stopCamera}>
+                    ✕ Cancel
+                  </button>
                 ) : (
-                  <button className="scan-btn start" onClick={startScan}>📷 Start Face Scan</button>
+                  <button className="scan-btn start" onClick={startScan}>
+                    Start Face Scan
+                  </button>
                 )}
               </div>
               
+              <div className="scan-features-list">
+                <p className="scan-features-title">🔍 AI will detect:</p>
+                <div className="scan-features-grid">
+                  <span>👤 Gender</span>
+                  <span>🎂 Age</span>
+                  <span>👓 Glasses</span>
+                  <span>🧔 Beard</span>
+                  <span>🎨 Skin tone</span>
+                  <span>📐 Face shape</span>
+                </div>
+              </div>
+              
+              <div className="scan-tips">
+                <p className="scan-tip-title">💡 Tips for best results:</p>
+                <ul className="scan-tip-list">
+                  <li>🔆 Good, even lighting on your face</li>
+                  <li>👤 Face the camera directly</li>
+                  <li>📐 Center your face in the oval</li>
+                  <li>😐 Neutral expression works best</li>
+                </ul>
+              </div>
+              
               <div className="scan-note">
-                <p>🔒 Your camera feed is processed locally and never uploaded.</p>
+                <p>🔒 All processing is done locally in your browser. Your camera feed is never uploaded.</p>
               </div>
             </div>
           )}
@@ -736,9 +1270,6 @@ export default function AvatarCreator({
     </div>
   );
 
-  // ══════════════════════════════════════════════════════════════
-  // RENDER
-  // ══════════════════════════════════════════════════════════════
   if (fullScreen) {
     return (
       <div className="avatar-creator-fullscreen">

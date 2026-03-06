@@ -3120,3 +3120,289 @@ img, svg {
     break-inside: avoid;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FACE SCAN - ENHANCED STYLES
+═══════════════════════════════════════════════════════════════ */
+
+.scan-preview-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.scan-preview {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 3/4;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  position: relative;
+}
+
+.scan-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.scan-canvas {
+  display: none;
+}
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-oval {
+  width: 90%;
+  height: 90%;
+  max-width: 280px;
+  max-height: 360px;
+}
+
+.scan-oval-path {
+  animation: pulse-oval 2s ease-in-out infinite;
+}
+
+@keyframes pulse-oval {
+  0%, 100% { 
+    stroke-opacity: 0.7;
+    stroke-dashoffset: 0;
+  }
+  50% { 
+    stroke-opacity: 1;
+    stroke-dashoffset: 30;
+  }
+}
+
+.scan-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  text-align: center;
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+}
+
+.scan-placeholder span {
+  font-size: 72px;
+  filter: grayscale(0.3);
+}
+
+.scan-placeholder p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 250px;
+}
+
+/* Progress Bar */
+.scan-progress-bar {
+  width: 100%;
+  max-width: 320px;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.scan-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+/* Status */
+.scan-status {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-status.success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.scan-status.error {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+/* Actions */
+.scan-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+}
+
+.scan-btn {
+  padding: 14px 32px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+  min-width: 180px;
+}
+
+.scan-btn.start {
+  background: var(--accent-gradient);
+  color: white;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.scan-btn.start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+.scan-btn.cancel {
+  background: var(--error-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--error);
+}
+
+/* Features List */
+.scan-features-list {
+  background: var(--accent-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  text-align: center;
+}
+
+.scan-features-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.scan-features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.scan-features-grid span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+/* Tips */
+.scan-tips {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.scan-tip-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.scan-tip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.scan-tip-list li {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Note */
+.scan-note {
+  text-align: center;
+}
+
+.scan-note p {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Detected Features Badges */
+.detected-features-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-sm);
+}
+
+.feature-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-light);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+/* Avatar Scan Section */
+.avatar-scan-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: center;
+  padding: var(--space-sm);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .scan-preview {
+    max-width: 280px;
+  }
+  
+  .scan-tip-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .scan-features-grid {
+    gap: 4px;
+  }
+  
+  .scan-features-grid span {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
